@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>EMS Trucks</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14202D">
+<meta name="description" content="Fuel and maintenance log for the White Horse Fire &amp; EMS trucks.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="EMS Trucks">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: mobile app shell — sticky header, scrolling views, bottom tab bar with a centre "log service" button */
+:root{
+  --bg:#EDF0F3; --surface:#FFFFFF; --sunk:#E3E8ED; --line:#D3DAE1;
+  --fg:#14202D; --muted:#5A6878; --ink:#14202D; --on-ink:#F2F5F8;
+  --accent:#C8102E; --on-accent:#FFFFFF; --amber:#9A620A; --amber-bg:#FDF1DC; --ok:#1E7A4B; --ok-bg:#E1F2E8; --bad-bg:#FBE3E6;
+  --odo-bg:#14202D; --odo-fg:#F7F9FB;
+  --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --r:10px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0C131A; --surface:#151F29; --sunk:#1B2733; --line:#283646;
+  --fg:#E5EAEF; --muted:#94A1AF; --ink:#060B10; --on-ink:#F2F5F8;
+  --accent:#FF4A5C; --on-accent:#16070A; --amber:#F2B744; --amber-bg:#3A2C10; --ok:#4FC98A; --ok-bg:#12301F; --bad-bg:#3B151B;
+  --odo-bg:#05090D; --odo-fg:#F2F5F8; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+@media (display-mode:standalone){body{overscroll-behavior-y:none;-webkit-user-select:none;user-select:none} input,textarea,select{-webkit-user-select:text;user-select:text}}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.45 var(--body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{font-size:16px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+img{max-width:100%}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header.top{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--on-ink);padding-top:env(safe-area-inset-top,0px)}
+header.top .wrap{display:flex;align-items:center;gap:12px;padding-block:12px}
+.mark{width:30px;height:30px;flex:none;border-radius:6px;background:#C8102E;display:grid;place-items:center}
+.mark svg{width:18px;height:18px}
+.brand{font:700 21px/1 var(--display);letter-spacing:.06em;text-transform:uppercase}
+.brand small{display:block;font:500 12px/1.2 var(--body);letter-spacing:0;text-transform:none;opacity:.7;margin-top:3px}
+.spacer{flex:1}
+.refresh{border:0;background:rgba(255,255,255,.1);color:var(--on-ink);border-radius:8px;width:40px;height:40px;display:grid;place-items:center;cursor:pointer}
+.refresh svg{width:20px;height:20px}
+.refresh.spin svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+main{padding-block:18px 130px}
+h1.view{font:700 26px/1.1 var(--display);letter-spacing:.02em;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 16px}
+.label{font:600 12px/1 var(--display);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.odo{display:inline-flex;gap:2px;padding:4px;border-radius:6px;background:var(--odo-bg)}
+.odo span{font:700 17px/1 var(--mono);color:var(--odo-fg);width:1.05em;text-align:center;padding:5px 0;border-radius:3px;background:rgba(255,255,255,.07)}
+.odo span.tenth{background:#C8102E;color:#fff}
+
+.trucks{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.truck{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;cursor:pointer;text-align:left;padding:0}
+.photo{aspect-ratio:16/9;max-width:100%;width:100%;background:var(--sunk);display:grid;place-items:center;overflow:hidden;position:relative}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo img:not([src]){display:none}
+.photo .ph{font:700 44px/1 var(--display);color:var(--muted);letter-spacing:.04em;opacity:.55}
+.truck .body{padding:14px;display:grid;gap:12px}
+.tname{font:700 22px/1 var(--display);letter-spacing:.02em}
+.meta{color:var(--muted);font-size:13px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat .v{font:700 20px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.stat .k{font-size:12px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:5px;font:600 12px/1 var(--body);padding:5px 8px;border-radius:999px;background:var(--sunk);color:var(--muted);white-space:nowrap}
+.chip.warn{background:var(--amber-bg);color:var(--amber)}
+.chip.bad{background:var(--bad-bg);color:var(--accent)}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.group-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:14px 4px 8px}
+.group-h h2{font:700 18px/1 var(--display);letter-spacing:.03em;margin:0}
+.item{display:flex;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;cursor:pointer}
+.item:first-child{border-top:0}
+.item:active{background:var(--sunk)}
+.item .t{font-weight:600}
+.item .s{font-size:13px;color:var(--muted)}
+.item .r{text-align:right;flex:none}
+.empty{padding:28px 18px;text-align:center;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:400px}
+th,td{padding:10px 12px;text-align:left;border-top:1px solid var(--line);white-space:nowrap}
+th{font:600 12px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-top:0;background:var(--sunk)}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px}
+.seg{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 12px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap}
+.seg[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px;font-weight:600;cursor:pointer;min-height:44px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.danger{color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn svg{width:18px;height:18px}
+.fab{position:fixed;right:max(18px,calc(env(safe-area-inset-right,0px) + 18px));bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.25);border-radius:999px;padding:0 18px;min-height:52px}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .wrap{display:grid;grid-template-columns:repeat(5,1fr);align-items:end;padding-block:6px}
+.tab{border:0;background:none;display:grid;justify-items:center;gap:3px;padding:6px 2px;cursor:pointer;color:var(--muted);font:600 11px/1 var(--body)}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--accent)}
+.tab.center .disc{width:50px;height:50px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;margin-top:-22px;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.tab.center .disc svg{width:26px;height:26px}
+
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(6,11,16,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:620px;max-height:94%;border-radius:16px 16px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (min-width:700px){.scrim{align-items:center}.sheet{border-radius:16px;max-height:88%}}
+.sheet header{display:flex;align-items:center;gap:10px;padding:14px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+.sheet header h2{font:700 21px/1 var(--display);letter-spacing:.03em;margin:0;flex:1}
+.sheet .content{overflow-y:auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:grid;gap:14px}
+.sheet footer{display:flex;gap:10px;padding:12px max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));border-top:1px solid var(--line)}
+.sheet footer .btn{flex:1}
+.x{border:0;background:none;cursor:pointer;padding:6px;color:var(--muted)}
+.field{display:grid;gap:6px}
+.field>label{font:600 13px/1 var(--display);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.field>label .req{color:var(--accent)}
+.field input,.field select,.field textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:11px 12px;min-height:46px}
+.field textarea{min-height:84px;resize:vertical}
+.field input.big{font:700 22px/1 var(--mono)}
+.hint{font-size:13px;color:var(--muted)}
+.hint.warn{color:var(--amber)}
+.err{font-size:14px;color:var(--accent);font-weight:600}
+.radios{display:flex;gap:8px;flex-wrap:wrap}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.two{grid-template-columns:1fr}}
+.confirm{background:var(--bad-bg);border-radius:8px;padding:12px;display:grid;gap:10px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumbs img{width:84px;height:84px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:var(--sunk)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;max-width:calc(100% - 32px)}
+
+.hero{border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+.hero .body{padding:16px;display:grid;gap:14px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kv .k{font-size:12px;color:var(--muted)}
+.kv .v{font-weight:600;word-break:break-all}
+.back{border:0;background:none;color:var(--muted);font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:8px}
+.stack{display:grid;gap:18px}
+
+/* PIN gate */
+.gate{min-height:100vh;display:grid;place-items:center;background:var(--ink);color:var(--on-ink);padding:24px max(16px,env(safe-area-inset-left,0px))}
+.gate .box{width:100%;max-width:340px;display:grid;gap:18px;text-align:center}
+.gate .mark{width:56px;height:56px;border-radius:12px;margin:0 auto}
+.gate .mark svg{width:32px;height:32px}
+.gate h1{font:700 32px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0}
+.gate p{margin:0;opacity:.75}
+.gate input{width:100%;text-align:center;font:700 30px/1 var(--mono);letter-spacing:.3em;padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff}
+.gate .btn.primary{background:#C8102E;border-color:#C8102E;color:#fff;min-height:52px;font-size:17px}
+.gate .err{color:#FF8A96}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+
+/* Inside the Google Sites frame: one-screen layout, tabs under the header so they never fall below the fold */
+.embedded,.embedded body{height:100%;overflow:hidden}
+.embedded #app:not([hidden]){display:flex;flex-direction:column;height:100%;position:relative}
+.embedded header.top{position:static;flex:none}
+.embedded nav.tabs{position:static;flex:none;order:0;border-top:0;border-bottom:1px solid var(--line);padding-bottom:0}
+.embedded main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;order:1;padding-block:16px 96px}
+.embedded nav.tabs .wrap{align-items:center;padding-block:4px}
+.embedded .tab.center .disc{width:34px;height:34px;margin-top:0;box-shadow:none}
+.embedded .tab.center .disc svg{width:20px;height:20px}
+.embedded .fab{position:absolute;bottom:16px}
+.embedded .gate{min-height:100%;height:100%}
+.embedded .toast{bottom:84px}
+</style>
+</head>
+<body>
+
+<section class="gate" id="gate" hidden>
+  <form class="box" id="gateForm" autocomplete="off">
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="square"><path d="M12 4v16M4 12h16"/></svg></div>
+    <h1>EMS Trucks</h1>
+    <p>Enter the station PIN to log fuel and maintenance.</p>
+    <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="10" aria-label="Station PIN" placeholder="••••••">
+    <div class="err" id="gateErr" hidden></div>
+    <button class="btn primary" type="submit" id="gateBtn">Unlock</button>
+  </form>
+</section>
+
+<div id="app" hidden>
+<header class="top">
+  <div class="wrap">
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="square"><path d="M12 4v16M4 12h16"/></svg></div>
+    <div class="brand">EMS Trucks<small id="whoami">Fuel &amp; maintenance</small></div>
+    <div class="spacer"></div>
+    <button class="refresh" id="refreshBtn" aria-label="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg></button>
+  </div>
+</header>
+
+<main><div class="wrap" id="view"></div></main>
+<button class="btn primary fab" id="fab" hidden></button>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="wrap">
+    <button class="tab" data-tab="trucks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M2 16V7h11v9M13 10h4l4 4v2h-8"/><circle cx="6.5" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>Trucks</button>
+    <button class="tab" data-tab="fuel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M6 9h6M14 11h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg>Fuel Log</button>
+    <button class="tab center" data-tab="addFuel" aria-label="Add fuel"><span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>Add Fuel</button>
+    <button class="tab" data-tab="monthly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8 14h2M14 14h2M8 17h2"/></svg>Monthly</button>
+    <button class="tab" data-tab="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>More</button>
+  </div>
+</nav>
+</div>
+
+<div id="sheetHost"></div>
+<div id="toastHost"></div>
+
+<script>
+(function(){
+var SERVICE_TYPES=["Oil Change","Tire Rotation","Brake Inspection","Transmission Fluid","Inspection","Registration","Other"];
+var ROLES=["Admin","Manager","User"];
+var S={trucks:[],fuel:[],maint:[],users:[],role:null,pin:"",view:"trucks",param:null,fuelTruck:"all",loaded:false};
+var photoCache={}, photoPending={}, photoTries={};
+
+/* ---------- storage (per phone) ---------- */
+function store(k,v){try{ if(v===undefined) return localStorage.getItem(k); if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v);}catch(e){} return null;}
+
+/* ---------- server calls ---------- */
+/* Inside Apps Script use google.script.run; on the Google Sites page call the script over the web
+   with no Google cookies attached, which avoids the multiple-accounts error. */
+var EXEC_URL="https://script.google.com/macros/s/AKfycbwbeDY3XhQpK7X692gXPiSbvCMeajTSM8Haj_tdbkku7T_QsisktkmWmbV2kYAJ9pO7/exec";
+var IN_GAS=!!(window.google&&google.script&&google.script.run);
+function api(fn){ var args=[].slice.call(arguments,1);
+  if(IN_GAS) return new Promise(function(res,rej){ var r=google.script.run.withSuccessHandler(res).withFailureHandler(function(e){ rej(e); }); r[fn].apply(r,args); });
+  return fetch(EXEC_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({fn:fn,args:args}),credentials:"omit",redirect:"follow"})
+    .then(function(r){ if(!r.ok) throw new Error("Couldn't reach the sheet. Check your signal and try again."); return r.json(); })
+    .then(function(j){ if(!j.ok) throw new Error(j.error); return j.result; }); }
+var IN_FRAME=(function(){try{return window.self!==window.top;}catch(e){return true;}})();
+if(!IN_GAS&&IN_FRAME) document.documentElement.classList.add("embedded");
+if("serviceWorker" in navigator&&!IN_GAS&&!IN_FRAME){ window.addEventListener("load",function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); }
+function msg(e){ var m=(e&&e.message)||String(e||""); return m.replace(/^Exception:\s*/,"").replace(/^Error:\s*/,"") || "Something went wrong. Try again."; }
+
+/* ---------- helpers ---------- */
+function $(s){return document.querySelector(s);}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function pad(n){return String(n).padStart(2,"0");}
+function toDate(s){ if(!s) return null; var d=new Date(s.length===10?s+"T00:00:00":s); return isNaN(d)?null:d; }
+function ymd(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function localStamp(d){return ymd(d)+"T"+pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());}
+function fmtDate(s){var d=toDate(s);return d?d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):"";}
+function fmtDT(s){var d=toDate(s);return d?d.toLocaleDateString(undefined,{month:"short",day:"numeric"})+" · "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}):"";}
+function monthLabel(k){var p=k.split("-");return new Date(+p[0],+p[1]-1,1).toLocaleDateString(undefined,{month:"long",year:"numeric"});}
+function n0(v){return (v==null||v==="")?"—":Number(v).toLocaleString(undefined,{maximumFractionDigits:0});}
+function n1(v){return (v==null||v==="")?"—":Number(v).toLocaleString(undefined,{maximumFractionDigits:1});}
+function truckById(id){return S.trucks.filter(function(t){return t.id===id;})[0];}
+function truckName(id){var t=truckById(id);return t?t.name:(id||"—");}
+function initials(name){var w=(name||"").replace(/[()]/g,"").split(/\s+/).filter(Boolean);var l=w[w.length-1]||"EMS";return l.slice(0,3).toUpperCase();}
+function isAdmin(){return S.role==="admin";}
+function toast(m){var h=$("#toastHost");h.innerHTML='<div class="toast" role="status">'+esc(m)+'</div>';clearTimeout(toast.t);toast.t=setTimeout(function(){h.innerHTML="";},2800);}
+function odo(v){ if(v==null||v==="") return '<span class="odo" aria-label="No reading"><span>-</span><span>-</span><span>-</span></span>';
+  var n=Number(v),w=Math.floor(n),t=Math.round((n-w)*10)%10; var d=String(w).padStart(6,"0").split("");
+  return '<span class="odo" aria-label="'+n1(n)+' miles">'+d.map(function(x){return "<span>"+x+"</span>";}).join("")+'<span class="tenth">'+t+'</span></span>'; }
+function photoImg(path,alt){ return path?'<img data-photo="'+esc(path)+'" alt="'+esc(alt||"")+'">':""; }
+function hydratePhotos(){
+  document.querySelectorAll("img[data-photo]:not([src])").forEach(function(img){
+    var p=img.getAttribute("data-photo");
+    if(photoCache[p]){ img.src=photoCache[p]; return; }
+    if(photoCache[p]===""||photoPending[p]) return;
+    photoPending[p]=1;
+    api("getPhoto",S.pin,p).then(function(url){ photoCache[p]=url||""; delete photoPending[p];
+      document.querySelectorAll('img[data-photo]').forEach(function(i){ if(i.getAttribute("data-photo")===p&&url) i.src=url; }); })
+      .catch(function(){ delete photoPending[p]; photoTries[p]=(photoTries[p]||0)+1; if(photoTries[p]>=2) photoCache[p]=""; else setTimeout(hydratePhotos,1500); });
+  });
+}
+
+/* ---------- computed values (ported from the AppSheet formulas) ---------- */
+function fuelFor(tid){return S.fuel.filter(function(f){return f.truck===tid;}).sort(function(a,b){return a.ts<b.ts?-1:1;});}
+function lastOdo(tid){var r=fuelFor(tid);return r.length?r[r.length-1].odo:null;}
+function lastOdoExcept(tid,ex){var r=fuelFor(tid).filter(function(x){return x.id!==ex;});return r.length?r[r.length-1].odo:null;}
+function maxOdo(tid){var r=fuelFor(tid);return r.length?Math.max.apply(null,r.map(function(x){return x.odo;})):null;}
+function ytd(tid){var now=new Date(),start=now.getFullYear()+"-01-01",end=ymd(now)+"T23:59:59";
+  var r=fuelFor(tid).filter(function(f){return f.ts>=start&&f.ts<=end;}); if(!r.length) return {gal:0,miles:0};
+  var o=r.map(function(x){return x.odo;}); return {gal:r.reduce(function(s,x){return s+(+x.gal||0);},0),miles:Math.max.apply(null,o)-Math.min.apply(null,o)};}
+function monthly(){var out={};
+  S.trucks.forEach(function(t){ var r=fuelFor(t.id); var months=[]; r.forEach(function(x){var m=x.ts.slice(0,7); if(months.indexOf(m)<0) months.push(m);});
+    months.forEach(function(m){ var inM=r.filter(function(x){return x.ts.slice(0,7)===m;}); var first=inM[0].ts;
+      var before=r.filter(function(x){return x.ts<first;}); var hi=Math.max.apply(null,inM.map(function(x){return x.odo;}));
+      var base=before.length?Math.max.apply(null,before.map(function(x){return x.odo;})):Math.min.apply(null,inM.map(function(x){return x.odo;}));
+      var gal=inM.reduce(function(s,x){return s+(+x.gal||0);},0), miles=hi-base;
+      (out[m]=out[m]||[]).push({truck:t.id,miles:miles,gal:gal,mpg:gal>0&&miles>0?miles/gal:null}); }); });
+  return out;}
+function nextServiceText(m){ if(m.nextBy==="Date") return m.nextDate?fmtDate(m.nextDate):""; if(m.nextBy==="Mileage") return m.nextMiles!=null?n0(m.nextMiles)+" miles":""; return ""; }
+function isUpcoming(m){ var soon=new Date(); soon.setHours(0,0,0,0); soon.setDate(soon.getDate()+15);
+  var byDate=m.nextDate&&toDate(m.nextDate)<=soon; var mx=maxOdo(m.truck);
+  var byMiles=m.nextMiles!=null&&mx!=null&&Number(m.nextMiles)<=mx+500; return !!(byDate||byMiles); }
+function regChip(t){ if(!t.regExp) return '<span class="chip">No registration date</span>';
+  var d=toDate(t.regExp),today=new Date(); today.setHours(0,0,0,0); var days=Math.round((d-today)/864e5);
+  if(days<0) return '<span class="chip bad">Registration expired '+fmtDate(t.regExp)+'</span>';
+  if(days<=60) return '<span class="chip warn">Registration due '+fmtDate(t.regExp)+'</span>';
+  return '<span class="chip ok">Reg. good to '+fmtDate(t.regExp)+'</span>'; }
+function icon(n){return {plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  wrench:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>',
+  fuel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M6 9h6M14 11h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg>'}[n]||"";}
+
+/* ---------- views ---------- */
+function render(){
+  var v=$("#view");
+  document.querySelectorAll(".tab").forEach(function(b){ var tab=b.dataset.tab;
+    var cur=tab===S.view||(tab==="trucks"&&S.view==="truck")||(tab==="more"&&["maintenance","upcoming","users","settings"].indexOf(S.view)>=0);
+    if(cur) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
+  $("#whoami").textContent=isAdmin()?"Admin":"Crew";
+  var fab=$("#fab"); fab.hidden=true;
+  if(!S.loaded){ v.innerHTML='<h1 class="view">Trucks</h1><div class="panel"><div class="empty">Loading from the sheet…</div></div>'; return; }
+  var views={trucks:viewTrucks,truck:viewTruck,fuel:viewFuel,monthly:viewMonthly,more:viewMore,maintenance:viewMaint,upcoming:viewUpcoming,users:viewUsers,settings:viewSettings};
+  (views[S.view]||viewTrucks)(v,fab);
+  hydratePhotos();
+}
+
+function viewTrucks(v,fab){
+  var up=S.maint.filter(isUpcoming);
+  var list=S.trucks.slice().sort(function(a,b){return (a.truckId||0)-(b.truckId||0);});
+  v.innerHTML='<h1 class="view">Trucks</h1><p class="sub">'+list.length+' vehicles · totals are for '+new Date().getFullYear()+' so far</p>'+
+  (list.length?'<div class="trucks">'+list.map(function(t){ var y=ytd(t.id); var u=up.filter(function(m){return m.truck===t.id;}).length;
+    return '<button class="truck" data-open-truck="'+esc(t.id)+'"><div class="photo"><span class="ph">'+esc(initials(t.name))+'</span>'+photoImg(t.image,"")+'</div>'+
+      '<div class="body"><div class="row"><div class="grow"><div class="tname">'+esc(t.name)+'</div><div class="meta">'+esc(t.plate||"No plate")+'</div></div>'+(u?'<span class="chip warn">'+u+' service due</span>':'')+'</div>'+
+      '<div><div class="label" style="margin-bottom:6px">Last odometer</div>'+odo(lastOdo(t.id))+'</div>'+
+      '<div class="stats"><div class="stat"><div class="v">'+n0(y.miles)+'</div><div class="k">Miles this year</div></div><div class="stat"><div class="v">'+n0(y.gal)+'</div><div class="k">Gallons this year</div></div></div>'+
+      '<div>'+regChip(t)+'</div></div></button>'; }).join("")+'</div>':'<div class="panel"><div class="empty">No trucks in the sheet yet.</div></div>');
+  if(isAdmin()){ fab.hidden=false; fab.innerHTML=icon("plus")+"Add truck"; fab.onclick=function(){truckForm();}; }
+}
+
+function viewTruck(v){
+  var t=truckById(S.param); if(!t){ go("trucks"); return; }
+  var y=ytd(t.id), fr=fuelFor(t.id).reverse(), ml=S.maint.filter(function(m){return m.truck===t.id;}).sort(function(a,b){return a.date<b.date?1:-1;});
+  var up=ml.filter(isUpcoming);
+  v.innerHTML='<button class="back" data-go="trucks">‹ All trucks</button><div class="stack">'+
+  '<div class="hero"><div class="photo"><span class="ph">'+esc(initials(t.name))+'</span>'+photoImg(t.image,t.name)+'</div><div class="body">'+
+    '<div class="row"><div class="grow"><h1 class="view">'+esc(t.name)+'</h1></div>'+(isAdmin()?'<button class="btn" data-edit-truck="'+esc(t.id)+'">Edit</button>':'')+'</div>'+
+    '<div class="row"><button class="btn primary" data-add-fuel="'+esc(t.id)+'">'+icon("fuel")+'Add fuel</button><button class="btn" data-add-maint="'+esc(t.id)+'">'+icon("wrench")+'Log service</button>'+
+    '<button class="btn" data-go="upcoming" data-filter="'+esc(t.id)+'">Upcoming'+(up.length?' <span class="chip warn">'+up.length+'</span>':'')+'</button></div>'+
+    '<div><div class="label" style="margin-bottom:6px">Last odometer</div>'+odo(lastOdo(t.id))+'</div>'+
+    '<div class="kv"><div><div class="k">Miles this year</div><div class="v num">'+n0(y.miles)+'</div></div><div><div class="k">Gallons this year</div><div class="v num">'+n0(y.gal)+'</div></div>'+
+    '<div><div class="k">License plate</div><div class="v">'+esc(t.plate||"—")+'</div></div><div><div class="k">VIN</div><div class="v num">'+esc(t.vin||"—")+'</div></div>'+
+    '<div><div class="k">Registration expires</div><div class="v">'+(t.regExp?fmtDate(t.regExp):"—")+'</div></div><div><div class="k">Truck ID</div><div class="v num">'+esc(t.truckId==null?"—":t.truckId)+'</div></div></div>'+
+  '</div></div>'+
+  '<section><div class="group-h"><h2>Fuel records</h2><span class="label">'+fr.length+'</span></div><div class="panel">'+(fr.length?fr.slice(0,25).map(fuelItem).join(""):'<div class="empty">No fill-ups logged for this truck.</div>')+'</div>'+
+    (fr.length>25?'<p class="hint" style="margin-top:8px">Showing the latest 25. See the Fuel Log for all '+fr.length+'.</p>':'')+'</section>'+
+  '<section><div class="group-h"><h2>Maintenance</h2><span class="label">'+ml.length+'</span></div><div class="panel">'+(ml.length?ml.map(maintItem).join(""):'<div class="empty">No maintenance recorded.</div>')+'</div></section></div>';
+}
+function fuelItem(f){ return '<button class="item" data-edit-fuel="'+esc(f.id)+'"><div class="grow"><div class="t">'+esc(fmtDT(f.ts))+'</div><div class="s">'+esc(truckName(f.truck))+(f.driver?" · "+esc(f.driver):"")+'</div></div>'+
+  '<div class="r"><div class="num t">'+n1(f.odo)+' mi</div><div class="s num">'+n1(f.gal)+' gal</div></div></button>'; }
+function maintItem(m){ var nx=nextServiceText(m), up=isUpcoming(m);
+  return '<button class="item" data-edit-maint="'+esc(m.id)+'"><div class="grow"><div class="t">'+esc(m.type||"Service")+' · '+esc(truckName(m.truck))+'</div><div class="s">'+esc(fmtDate(m.date))+' · '+esc(m.provider||"")+(m.work?" — "+esc(m.work):"")+'</div>'+
+  (nx?'<div style="margin-top:6px"><span class="chip '+(up?"warn":"")+'">Next: '+esc(nx)+'</span></div>':'')+'</div><div class="r"><div class="num s">'+n0(m.odo)+' mi</div>'+((m.photos||[]).length?'<div class="s">'+m.photos.length+' photo'+(m.photos.length>1?"s":"")+'</div>':'')+'</div></button>'; }
+
+function viewFuel(v,fab){
+  var list=S.fuel.filter(function(f){return S.fuelTruck==="all"||f.truck===S.fuelTruck;}).sort(function(a,b){return a.ts<b.ts?1:-1;});
+  var groups={},order=[]; list.forEach(function(f){var m=f.ts.slice(0,7); if(!groups[m]){groups[m]=[];order.push(m);} groups[m].push(f);});
+  v.innerHTML='<h1 class="view">Fuel Log</h1><p class="sub">'+list.length+' fill-ups</p>'+
+  '<div class="filters" role="group" aria-label="Filter by truck"><button class="seg" data-fuel-truck="all" aria-pressed="'+(S.fuelTruck==="all")+'">All trucks</button>'+
+  S.trucks.map(function(t){return '<button class="seg" data-fuel-truck="'+esc(t.id)+'" aria-pressed="'+(S.fuelTruck===t.id)+'">'+esc(t.name)+'</button>';}).join("")+'</div>'+
+  (order.length?order.map(function(m){ var rows=groups[m]; return '<section><div class="group-h"><h2>'+esc(monthLabel(m))+'</h2><span class="label num">'+n0(rows.reduce(function(s,x){return s+(+x.gal||0);},0))+' gal</span></div><div class="panel">'+rows.map(fuelItem).join("")+'</div></section>'; }).join("")
+   :'<div class="panel"><div class="empty">No fill-ups yet. Tap Add Fuel to log the first one.</div></div>');
+}
+
+function viewMonthly(v){
+  var data=monthly(); var keys=Object.keys(data).sort().reverse();
+  v.innerHTML='<h1 class="view">Monthly Summary</h1><p class="sub">Miles driven and fuel used per truck, by month</p>'+
+  (keys.length?keys.map(function(k){ var rows=data[k].sort(function(a,b){return truckName(a.truck).localeCompare(truckName(b.truck));});
+    var tm=rows.reduce(function(s,r){return s+r.miles;},0), tg=rows.reduce(function(s,r){return s+r.gal;},0);
+    return '<section><div class="group-h"><h2>'+esc(monthLabel(k))+'</h2><span class="label num">'+n0(tm)+' mi · '+n0(tg)+' gal</span></div><div class="panel tablewrap"><table><thead><tr><th>Truck</th><th class="n">Miles</th><th class="n">Gallons</th><th class="n">MPG</th></tr></thead><tbody>'+
+      rows.map(function(r){return '<tr><td>'+esc(truckName(r.truck))+'</td><td class="n">'+n0(r.miles)+'</td><td class="n">'+n0(r.gal)+'</td><td class="n">'+(r.mpg?r.mpg.toFixed(1):"—")+'</td></tr>';}).join("")+'</tbody></table></div></section>'; }).join("")
+   :'<div class="panel"><div class="empty">The summary fills in once fuel is logged.</div></div>')+
+  '<p class="hint" style="margin-top:14px">Miles for a month = highest odometer that month minus the highest reading before it (or the month\'s lowest reading for a truck\'s first month).</p>';
+}
+
+function viewMore(v){
+  var up=S.maint.filter(isUpcoming).length;
+  v.innerHTML='<h1 class="view">More</h1><p class="sub">Maintenance, reminders and settings</p><div class="panel">'+
+    '<button class="item" data-go="upcoming"><div class="grow"><div class="t">Upcoming Maintenance</div><div class="s">Due within 15 days or 500 miles</div></div>'+(up?'<span class="chip warn">'+up+'</span>':'')+'</button>'+
+    '<button class="item" data-go="maintenance"><div class="grow"><div class="t">Maintenance Log</div><div class="s">Every service record</div></div><span class="chip">'+S.maint.length+'</span></button>'+
+    (isAdmin()?'<button class="item" data-go="users"><div class="grow"><div class="t">Users</div><div class="s">Crew list and roles</div></div><span class="chip">'+S.users.length+'</span></button>':'')+
+    '<button class="item" data-go="settings"><div class="grow"><div class="t">Settings</div><div class="s">'+(isAdmin()?"Change PINs, lock this phone":"Admin access, lock this phone")+'</div></div></button></div>';
+}
+function viewMaint(v,fab){
+  var list=S.maint.slice().sort(function(a,b){return a.date<b.date?1:-1;});
+  v.innerHTML='<button class="back" data-go="more">‹ More</button><h1 class="view">Maintenance Log</h1><p class="sub">'+list.length+' records</p><div class="panel">'+(list.length?list.map(maintItem).join(""):'<div class="empty">No maintenance recorded yet.</div>')+'</div>';
+  fab.hidden=false; fab.innerHTML=icon("wrench")+"Log service"; fab.onclick=function(){maintForm();};
+}
+function viewUpcoming(v){
+  var f=S.param; var list=S.maint.filter(isUpcoming).filter(function(m){return !f||m.truck===f;}).sort(function(a,b){return truckName(a.truck).localeCompare(truckName(b.truck));});
+  v.innerHTML=(f?'<button class="back" data-open-truck="'+esc(f)+'">‹ '+esc(truckName(f))+'</button>':'<button class="back" data-go="more">‹ More</button>')+
+  '<h1 class="view">Upcoming Maintenance</h1><p class="sub">'+(f?esc(truckName(f))+" · ":"")+'service due within 15 days, or within 500 miles of the truck\'s highest odometer reading</p>'+
+  '<div class="panel tablewrap">'+(list.length?'<table><thead><tr><th>Truck</th><th>Service</th><th class="n">Odometer</th><th>Next service</th></tr></thead><tbody>'+
+   list.map(function(m){return '<tr data-edit-maint="'+esc(m.id)+'" style="cursor:pointer"><td>'+esc(truckName(m.truck))+'</td><td>'+esc(m.type||"")+'</td><td class="n">'+n0(m.odo)+'</td><td>'+esc(nextServiceText(m)||"—")+'</td></tr>';}).join("")+'</tbody></table>'
+   :'<div class="empty">Nothing due. You\'re caught up.</div>')+'</div>';
+}
+function viewUsers(v,fab){
+  if(!isAdmin()){ go("more"); return; }
+  var list=S.users.slice().sort(function(a,b){return (a.username||"").localeCompare(b.username||"");});
+  v.innerHTML='<button class="back" data-go="more">‹ More</button><h1 class="view">Users</h1><p class="sub">'+list.length+' people</p><div class="panel">'+
+   (list.length?list.map(function(u){return '<button class="item" data-edit-user="'+esc(u.id)+'"><div class="grow"><div class="t">'+esc(u.username)+'</div><div class="s">'+esc(u.email)+'</div></div><span class="chip">'+esc(u.role||"User")+'</span></button>';}).join(""):'<div class="empty">No users listed.</div>')+'</div>';
+  fab.hidden=false; fab.innerHTML=icon("plus")+"Add user"; fab.onclick=function(){userForm();};
+}
+function viewSettings(v){
+  v.innerHTML='<button class="back" data-go="more">‹ More</button><h1 class="view">Settings</h1><p class="sub">This phone is unlocked as <strong>'+(isAdmin()?"Admin":"Crew")+'</strong>.</p><div class="stack">'+
+  (isAdmin()?'<form class="panel" id="pinForm" style="padding:16px;display:grid;gap:14px"><div class="label">Change PINs</div>'+
+     '<div class="two"><div class="field"><label for="newCrew">New crew PIN</label><input id="newCrew" inputmode="numeric" pattern="[0-9]*" maxlength="10" required></div>'+
+     '<div class="field"><label for="newAdmin">New admin PIN</label><input id="newAdmin" inputmode="numeric" pattern="[0-9]*" maxlength="10" required></div></div>'+
+     '<div class="hint">4 to 10 digits each. Everyone will need to enter the new PIN the next time the app checks it.</div><div class="err" id="pinErr" hidden></div><button class="btn primary" type="submit">Save PINs</button></form>'
+   :'<form class="panel" id="adminForm" style="padding:16px;display:grid;gap:14px"><div class="label">Admin access</div><div class="field"><label for="adminPin">Admin PIN</label><input id="adminPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="10"></div>'+
+     '<div class="hint">Admins can add and edit trucks and users, and delete records.</div><div class="err" id="adminErr" hidden></div><button class="btn" type="submit">Unlock admin</button></form>')+
+  '<div class="panel" style="padding:16px;display:grid;gap:12px"><div class="label">This phone</div><div class="hint">Locking removes the saved PIN from this phone.</div><button class="btn danger" id="lockBtn" type="button">Lock this phone</button></div>'+
+  '<p class="hint">Data lives in the “Gas Records (Responses)” Google Sheet. Fuel goes to the “Form Responses 5” tab, so the old Google Form keeps working too.</p></div>';
+  var pf=$("#pinForm"); if(pf) pf.onsubmit=function(e){ e.preventDefault(); var c=$("#newCrew").value.trim(), a=$("#newAdmin").value.trim();
+    api("changePins",S.pin,c,a).then(function(){ S.pin=a; store("emsPin",a); toast("PINs changed"); pf.reset(); }).catch(function(err){ var x=$("#pinErr"); x.textContent=msg(err); x.hidden=false; }); };
+  var af=$("#adminForm"); if(af) af.onsubmit=function(e){ e.preventDefault(); var p=$("#adminPin").value.trim();
+    api("login",p).then(function(role){ if(role!=="admin") throw new Error("That's the crew PIN. Enter the admin PIN."); S.pin=p; store("emsPin",p); toast("Admin unlocked"); return load(); })
+      .catch(function(err){ var x=$("#adminErr"); x.textContent=msg(err); x.hidden=false; }); };
+  $("#lockBtn").onclick=function(){ store("emsPin",null); S.pin=""; S.role=null; showGate(); };
+}
+
+/* ---------- forms ---------- */
+function openSheet(o){
+  var host=$("#sheetHost");
+  host.innerHTML='<div class="scrim" id="scrim"><form class="sheet" id="sheetForm" novalidate role="dialog" aria-modal="true" aria-label="'+esc(o.title)+'">'+
+    '<header><h2>'+esc(o.title)+'</h2><button type="button" class="x" id="sheetClose" aria-label="Close"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>'+
+    '<div class="content">'+o.body+'<div class="err" id="formErr" hidden></div><div id="confirmHost"></div></div>'+
+    '<footer>'+(o.onDelete?'<button type="button" class="btn danger" id="sheetDel">Delete</button>':'')+'<button type="button" class="btn" id="sheetCancel">Cancel</button><button type="submit" class="btn primary" id="sheetSave">'+esc(o.saveLabel||"Save")+'</button></footer></form></div>';
+  function close(){ host.innerHTML=""; document.removeEventListener("keydown",onKey); }
+  function onKey(e){ if(e.key==="Escape") close(); }
+  document.addEventListener("keydown",onKey);
+  $("#sheetClose").onclick=close; $("#sheetCancel").onclick=close;
+  $("#scrim").addEventListener("mousedown",function(e){ if(e.target.id==="scrim") close(); });
+  var form=$("#sheetForm");
+  form.onsubmit=function(e){ e.preventDefault(); var err=$("#formErr"); err.hidden=true; var btn=$("#sheetSave");
+    var bad=o.validate&&o.validate(form); if(bad){ err.textContent=bad; err.hidden=false; return; }
+    btn.disabled=true; btn.textContent="Saving…";
+    o.onSave(form).then(function(m){ close(); if(m) toast(m); return load(true); })
+      .catch(function(ex){ err.textContent=msg(ex); err.hidden=false; btn.disabled=false; btn.textContent=o.saveLabel||"Save"; }); };
+  if(o.onDelete) $("#sheetDel").onclick=function(){
+    $("#confirmHost").innerHTML='<div class="confirm"><div><strong>Delete this record?</strong> It will be removed from the Google Sheet.</div><div class="row"><button type="button" class="btn" id="cNo">Keep it</button><button type="button" class="btn primary" id="cYes">Delete</button></div></div>';
+    $("#cNo").onclick=function(){ $("#confirmHost").innerHTML=""; };
+    $("#cYes").onclick=function(){ this.disabled=true; o.onDelete().then(function(){ close(); toast("Deleted"); return load(true); }).catch(function(ex){ var err=$("#formErr"); err.textContent=msg(ex); err.hidden=false; }); };
+  };
+  if(o.after) o.after(form);
+  hydratePhotos();
+}
+function truckOptions(sel){ return '<option value="">Choose a truck…</option>'+S.trucks.map(function(t){return '<option value="'+esc(t.id)+'"'+(t.id===sel?" selected":"")+'>'+esc(t.name)+'</option>';}).join(""); }
+
+function fuelForm(id,preset){
+  var f=id?S.fuel.filter(function(x){return x.id===id;})[0]:null;
+  var ts=f?f.ts.slice(0,16):localStamp(new Date()).slice(0,16);
+  var truck=f?f.truck:(preset||store("emsLastTruck")||"");
+  if(truck&&!truckById(truck)) truck="";
+  openSheet({title:f?"Fuel record":"Add fuel", saveLabel:f?"Save":"Log fuel",
+    body:'<div class="field"><label for="fTruck">Truck <span class="req">*</span></label><select id="fTruck" name="truck">'+truckOptions(truck)+'</select><div class="hint" id="fLast"></div></div>'+
+      '<div class="two"><div class="field"><label for="fOdo">Odometer <span class="req">*</span></label><input id="fOdo" class="big" name="odo" type="number" inputmode="decimal" step="0.1" min="0" value="'+(f?esc(f.odo):"")+'"></div>'+
+      '<div class="field"><label for="fGal">Gallons <span class="req">*</span></label><input id="fGal" class="big" name="gal" type="number" inputmode="decimal" step="0.001" min="0" value="'+(f?esc(f.gal):"")+'"></div></div>'+
+      '<div class="hint" id="fWarn"></div>'+
+      '<div class="field"><label for="fDriver">Driver</label><input id="fDriver" name="driver" type="text" autocomplete="name" value="'+esc(f?f.driver:(store("emsDriver")||""))+'" placeholder="Your name"></div>'+
+      '<div class="field"><label for="fTs">Date &amp; time</label><input id="fTs" name="ts" type="datetime-local" value="'+esc(ts)+'"></div>',
+    after:function(form){ function upd(){ var t=form.truck.value; var lo=t?lastOdoExcept(t,f&&f.id):null;
+        $("#fLast").textContent=t?(lo!=null?"Last odometer reading: "+n1(lo)+" mi":"No earlier fill-ups for this truck"):"";
+        var o=parseFloat(form.odo.value), w=$("#fWarn");
+        if(lo!=null&&!isNaN(o)&&o<lo){ w.textContent="That's lower than the last reading ("+n1(lo)+"). Double-check the odometer."; w.className="hint warn"; }
+        else if(lo!=null&&!isNaN(o)&&o-lo>1500){ w.textContent="That's "+n0(o-lo)+" miles since the last fill-up. Double-check the odometer."; w.className="hint warn"; }
+        else { w.textContent=""; w.className="hint"; } }
+      form.truck.onchange=upd; form.odo.oninput=upd; upd(); },
+    validate:function(form){ if(!form.truck.value) return "Choose a truck."; if(isNaN(parseFloat(form.odo.value))) return "Enter the odometer reading.";
+      if(!(parseFloat(form.gal.value)>0)) return "Enter the gallons pumped."; if(!form.ts.value) return "Enter the date and time."; return ""; },
+    onSave:function(form){ var rec={ts:form.ts.value.length===16?form.ts.value+":00":form.ts.value, truck:form.truck.value, odo:parseFloat(form.odo.value), gal:parseFloat(form.gal.value), driver:form.driver.value.trim()};
+      store("emsDriver",rec.driver); store("emsLastTruck",rec.truck);
+      return api("saveFuel",S.pin,f?f.id:"",rec).then(function(){ return f?"Fuel record updated":"Logged "+n1(rec.gal)+" gal for "+truckName(rec.truck); }); },
+    onDelete:f&&isAdmin()?function(){ return api("deleteFuel",S.pin,f.id); }:null });
+}
+
+function maintForm(id,preset){
+  var m=id?S.maint.filter(function(x){return x.id===id;})[0]:null;
+  var known=!m||!m.type||SERVICE_TYPES.indexOf(m.type)>=0;
+  var photos=(m&&m.photos||[]).slice();
+  openSheet({title:m?"Maintenance record":"Log service",
+    body:'<div class="field"><label for="mTruck">Truck <span class="req">*</span></label><select id="mTruck" name="truck">'+truckOptions(m?m.truck:(preset||""))+'</select><div class="hint" id="mLast"></div></div>'+
+     '<div class="two"><div class="field"><label for="mDate">Service date <span class="req">*</span></label><input id="mDate" name="date" type="date" value="'+esc(m?m.date:ymd(new Date()))+'"></div>'+
+     '<div class="field"><label for="mType">Service type</label><select id="mType" name="type">'+SERVICE_TYPES.map(function(s){return '<option'+(((m&&m.type)===s)||(!known&&s==="Other")?" selected":"")+'>'+s+'</option>';}).join("")+'</select></div></div>'+
+     '<div class="field" id="mOtherWrap"><label for="mOther">Describe the service</label><input id="mOther" name="other" type="text" value="'+(known?"":esc(m.type))+'"></div>'+
+     '<div class="two"><div class="field"><label for="mOdo">Odometer <span class="req">*</span></label><input id="mOdo" name="odo" type="number" inputmode="decimal" step="0.1" min="0" value="'+(m?esc(m.odo):"")+'"></div>'+
+     '<div class="field"><label for="mProv">Service provider <span class="req">*</span></label><input id="mProv" name="provider" type="text" list="provList" value="'+esc(m?m.provider:"")+'"><datalist id="provList">'+
+       S.maint.map(function(x){return x.provider;}).filter(function(p,i,a){return p&&a.indexOf(p)===i;}).map(function(p){return '<option value="'+esc(p)+'">';}).join("")+'</datalist></div></div>'+
+     '<div class="field"><label for="mWork">Work performed / noted <span class="req">*</span></label><textarea id="mWork" name="work">'+esc(m?m.work:"")+'</textarea></div>'+
+     '<div class="field"><label>Next scheduled service</label><div class="radios">'+["","Date","Mileage"].map(function(o){return '<label class="seg" style="display:inline-flex;gap:6px;align-items:center"><input type="radio" name="nextBy" value="'+o+'"'+(((m&&m.nextBy)||"")===o?" checked":"")+'> '+(o||"None")+'</label>';}).join("")+'</div></div>'+
+     '<div class="field" id="mNDWrap"><label for="mND">Next service date</label><input id="mND" name="nextDate" type="date" value="'+esc(m?m.nextDate:"")+'"></div>'+
+     '<div class="field" id="mNMWrap"><label for="mNM">Next service mileage</label><input id="mNM" name="nextMiles" type="number" inputmode="numeric" min="0" value="'+(m&&m.nextMiles!=null?m.nextMiles:"")+'"></div>'+
+     '<div class="field"><label for="mPhoto">Photos</label><div class="thumbs" id="mThumbs"></div><input id="mPhoto" type="file" accept="image/*" multiple><div class="hint" id="mUp"></div></div>',
+    after:function(form){
+      function sync(){ var by=(form.querySelector("[name=nextBy]:checked")||{}).value||""; $("#mNDWrap").hidden=by!=="Date"; $("#mNMWrap").hidden=by!=="Mileage";
+        $("#mOtherWrap").hidden=form.type.value!=="Other"; var t=form.truck.value, lo=t?lastOdo(t):null; $("#mLast").textContent=t&&lo!=null?"Last odometer reading: "+n1(lo)+" mi":""; }
+      form.querySelectorAll("[name=nextBy]").forEach(function(r){r.onchange=sync;}); form.type.onchange=sync; form.truck.onchange=sync; sync();
+      function draw(){ $("#mThumbs").innerHTML=photos.map(function(p){return '<img data-photo="'+esc(p)+'" alt="Maintenance photo">';}).join(""); hydratePhotos(); } draw();
+      var fi=$("#mPhoto"); fi.onchange=function(){ var up=$("#mUp"); var files=[].slice.call(fi.files); fi.value="";
+        files.reduce(function(p,file){ return p.then(function(){ up.textContent="Uploading "+file.name+"…"; return shrink(file,1400); })
+          .then(function(d){ return api("uploadPhoto",S.pin,"maint",d).then(function(path){ photoCache[path]=d; photos.push(path); draw(); up.textContent="Photo added. Save to keep it."; }); })
+          .catch(function(ex){ up.textContent="Couldn't upload that photo: "+msg(ex); }); }, Promise.resolve()); };
+    },
+    validate:function(form){ if(!form.truck.value) return "Choose a truck."; if(!form.date.value) return "Enter the service date.";
+      if(isNaN(parseFloat(form.odo.value))) return "Enter the odometer reading."; if(!form.provider.value.trim()) return "Enter the service provider.";
+      if(!form.work.value.trim()) return "Describe the work performed."; return ""; },
+    onSave:function(form){ var type=form.type.value; if(type==="Other"&&form.other.value.trim()) type=form.other.value.trim();
+      var by=(form.querySelector("[name=nextBy]:checked")||{}).value||"";
+      var rec={truck:form.truck.value,date:form.date.value,type:type,odo:parseFloat(form.odo.value),provider:form.provider.value.trim(),work:form.work.value.trim(),
+        nextBy:by,nextDate:by==="Date"?form.nextDate.value:"",nextMiles:by==="Mileage"&&form.nextMiles.value!==""?Number(form.nextMiles.value):null,photos:photos};
+      return api("saveMaint",S.pin,m?m.id:"",rec).then(function(){ return m?"Maintenance record updated":"Service logged"; }); },
+    onDelete:m&&isAdmin()?function(){ return api("deleteMaint",S.pin,m.id); }:null });
+}
+
+function truckForm(id){
+  var t=id?truckById(id):null; var image=t?t.image:"";
+  var nextId=Math.max.apply(null,[0].concat(S.trucks.map(function(x){return +x.truckId||0;})))+1;
+  openSheet({title:t?"Edit truck":"Add truck",
+    body:'<div class="field"><label for="tName">Truck name <span class="req">*</span></label><input id="tName" name="name" type="text" value="'+esc(t?t.name:"")+'" placeholder="e.g. 2024 (Rosie)">'+(t?'<div class="hint">Renaming also updates this truck\'s fuel and maintenance rows in the sheet.</div>':'')+'</div>'+
+     '<div class="two"><div class="field"><label for="tId">Truck ID</label><input id="tId" name="truckId" type="number" min="0" value="'+esc(t&&t.truckId!=null?t.truckId:nextId)+'"></div>'+
+     '<div class="field"><label for="tPlate">License plate</label><input id="tPlate" name="plate" type="text" value="'+esc(t?t.plate:"")+'"></div></div>'+
+     '<div class="field"><label for="tVin">VIN</label><input id="tVin" name="vin" type="text" value="'+esc(t?t.vin:"")+'" style="font-family:var(--mono)"></div>'+
+     '<div class="field"><label for="tReg">Registration expiration</label><input id="tReg" name="regExp" type="date" value="'+esc(t?t.regExp:"")+'"></div>'+
+     '<div class="field"><label for="tPhoto">Truck photo</label><div class="thumbs" id="tThumb"></div><input id="tPhoto" type="file" accept="image/*"><div class="hint" id="tUp"></div></div>',
+    after:function(){ function draw(){ $("#tThumb").innerHTML=image?'<img data-photo="'+esc(image)+'" alt="Truck photo" style="width:160px;height:90px">':'<span class="hint">No photo yet.</span>'; hydratePhotos(); } draw();
+      var fi=$("#tPhoto"); fi.onchange=function(){ var file=fi.files[0]; if(!file) return; var up=$("#tUp"); up.textContent="Uploading…";
+        shrink(file,1600).then(function(d){ return api("uploadPhoto",S.pin,"truck",d).then(function(path){ photoCache[path]=d; image=path; draw(); up.textContent="Photo added. Save to keep it."; }); })
+          .catch(function(ex){ up.textContent="Couldn't upload that photo: "+msg(ex); }); }; },
+    validate:function(form){ var n=form.name.value.trim(); if(!n) return "Enter a truck name.";
+      if(S.trucks.some(function(x){return x.name.toLowerCase()===n.toLowerCase()&&(!t||x.id!==t.id);})) return "Another truck already has that name."; return ""; },
+    onSave:function(form){ var rec={name:form.name.value.trim(),truckId:form.truckId.value,plate:form.plate.value.trim(),vin:form.vin.value.trim(),regExp:form.regExp.value,image:image};
+      if(t&&S.param===t.id) S.param=rec.name;
+      return api("saveTruck",S.pin,t?t.id:"",rec).then(function(){ return t?"Truck updated":"Truck added"; }); } });
+}
+
+function userForm(id){
+  var u=id?S.users.filter(function(x){return x.id===id;})[0]:null;
+  openSheet({title:u?"User":"Add user",
+    body:'<div class="field"><label for="uName">Username <span class="req">*</span></label><input id="uName" name="username" type="text" value="'+esc(u?u.username:"")+'"></div>'+
+     '<div class="field"><label for="uEmail">Email <span class="req">*</span></label><input id="uEmail" name="email" type="email" value="'+esc(u?u.email:"")+'"></div>'+
+     '<div class="field"><label for="uRole">Role</label><select id="uRole" name="role">'+ROLES.map(function(r){return '<option'+(((u&&u.role)||"User")===r?" selected":"")+'>'+r+'</option>';}).join("")+'</select></div>',
+    validate:function(form){ if(!form.username.value.trim()) return "Enter a username."; if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.value.trim())) return "Enter a valid email address."; return ""; },
+    onSave:function(form){ return api("saveUser",S.pin,u?u.id:"",{username:form.username.value.trim(),email:form.email.value.trim(),role:form.role.value}).then(function(){ return u?"User updated":"User added"; }); },
+    onDelete:u?function(){ return api("deleteUser",S.pin,u.id); }:null });
+}
+
+function shrink(file,max){ return new Promise(function(res,rej){
+  var r=new FileReader(); r.onerror=function(){rej(new Error("Couldn't read that file."));};
+  r.onload=function(){ var img=new Image(); img.onerror=function(){rej(new Error("That file is not an image."));};
+    img.onload=function(){ var s=Math.min(1,max/Math.max(img.width,img.height)); var c=document.createElement("canvas");
+      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s); c.getContext("2d").drawImage(img,0,0,c.width,c.height); res(c.toDataURL("image/jpeg",0.82)); };
+    img.src=r.result; };
+  r.readAsDataURL(file); }); }
+
+/* ---------- navigation ---------- */
+function go(view,param){ S.view=view; S.param=param||null; render(); window.scrollTo(0,0); var mn=document.querySelector("main"); if(mn) mn.scrollTop=0; }
+document.addEventListener("click",function(e){
+  var el=e.target.closest("[data-tab],[data-go],[data-open-truck],[data-edit-fuel],[data-edit-maint],[data-edit-truck],[data-edit-user],[data-add-fuel],[data-add-maint],[data-fuel-truck]");
+  if(!el||!S.role) return; var d=el.dataset;
+  if(d.tab){ if(d.tab==="addFuel"){ fuelForm(null,S.view==="truck"?S.param:(S.fuelTruck!=="all"?S.fuelTruck:null)); return; } go(d.tab); return; }
+  if(d.addFuel){ fuelForm(null,d.addFuel); return; }
+  if(d.addMaint){ maintForm(null,d.addMaint); return; }
+  if(d.editTruck){ truckForm(d.editTruck); return; }
+  if(d.go==="upcoming"&&d.filter){ go("upcoming",d.filter); return; }
+  if(d.openTruck){ go("truck",d.openTruck); return; }
+  if(d.go){ go(d.go); return; }
+  if(d.editFuel){ fuelForm(d.editFuel); return; }
+  if(d.editMaint){ maintForm(d.editMaint); return; }
+  if(d.editUser){ userForm(d.editUser); return; }
+  if(d.fuelTruck){ S.fuelTruck=d.fuelTruck; render(); return; }
+});
+
+/* ---------- load ---------- */
+var loading=false;
+function load(quiet){
+  if(loading) return Promise.resolve(); loading=true; $("#refreshBtn").classList.add("spin");
+  return api("getData",S.pin).then(function(d){ S.role=d.role; S.trucks=d.trucks; S.fuel=d.fuel; S.maint=d.maint; S.users=d.users; S.loaded=true; render(); })
+    .catch(function(e){ var m=msg(e); if(/PIN/.test(m)){ store("emsPin",null); S.role=null; showGate(m); } else if(!quiet) toast(m); })
+    .then(function(){ loading=false; $("#refreshBtn").classList.remove("spin"); });
+}
+function showGate(err){ $("#app").hidden=true; $("#gate").hidden=false; var e=$("#gateErr"); e.hidden=!err; e.textContent=err||""; $("#pinInput").value=""; setTimeout(function(){ $("#pinInput").focus(); },50); }
+function showApp(){ $("#gate").hidden=true; $("#app").hidden=false; render(); }
+$("#gateForm").onsubmit=function(e){ e.preventDefault(); var p=$("#pinInput").value.trim(); if(!p) return;
+  var b=$("#gateBtn"); b.disabled=true; b.textContent="Checking…";
+  api("login",p).then(function(role){ S.pin=p; S.role=role; store("emsPin",p); showApp(); return load(); })
+    .catch(function(err){ showGate(msg(err)); }).then(function(){ b.disabled=false; b.textContent="Unlock"; }); };
+$("#refreshBtn").onclick=function(){ load(); };
+document.addEventListener("visibilitychange",function(){ if(!document.hidden&&S.role) load(true); });
+setInterval(function(){ if(!document.hidden&&S.role) load(true); },180000);
+
+var saved=store("emsPin");
+if(saved){ S.pin=saved; S.role="crew"; showApp(); load(); } else showGate();
+})();
+</script>
+</body>
+</html>
