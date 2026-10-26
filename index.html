@@ -5,7 +5,7 @@
 <title>EMS Trucks</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#14202D">
-<meta name="description" content="Fuel and maintenance log for the White Horse Fire &amp; EMS trucks.">
+<meta name="description" content="Maintenance tracking and fuel reports for the White Horse Fire &amp; EMS trucks.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -96,7 +96,8 @@ h1.view{font:700 26px/1.1 var(--display);letter-spacing:.02em;margin:0 0 4px;tex
 .item .r{text-align:right;flex:none}
 .empty{padding:28px 18px;text-align:center;color:var(--muted)}
 .tablewrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:400px}
+table{border-collapse:collapse;width:100%}
+@media (max-width:480px){th,td{padding:10px 8px}th:first-child,td:first-child{padding-left:12px}th:last-child,td:last-child{padding-right:12px}.hide-sm{display:none}}
 th,td{padding:10px 12px;text-align:left;border-top:1px solid var(--line);white-space:nowrap}
 th{font:600 12px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-top:0;background:var(--sunk)}
 td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
@@ -129,8 +130,11 @@ nav.tabs .wrap{display:grid;grid-template-columns:repeat(5,1fr);align-items:end;
 .sheet footer .btn{flex:1}
 .x{border:0;background:none;cursor:pointer;padding:6px;color:var(--muted)}
 .field{display:grid;gap:6px}
-.field>label{font:600 13px/1 var(--display);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.field>label:not(.btn){font:600 13px/1 var(--display);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .field>label .req{color:var(--accent)}
+.field input[type=radio]{width:auto;min-height:0;padding:0}
+a.btn{text-decoration:none;color:inherit}
+a.btn.primary{color:var(--on-accent)}
 .field input,.field select,.field textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:11px 12px;min-height:46px}
 .field textarea{min-height:84px;resize:vertical}
 .field input.big{font:700 22px/1 var(--mono)}
@@ -152,6 +156,41 @@ nav.tabs .wrap{display:grid;grid-template-columns:repeat(5,1fr);align-items:end;
 .kv .v{font-weight:600;word-break:break-all}
 .back{border:0;background:none;color:var(--muted);font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:8px}
 .stack{display:grid;gap:18px}
+.stack>*{min-width:0}
+
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 0}
+.item.static{cursor:default}
+.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal}
+.clipn{display:inline-flex;gap:3px;align-items:center;justify-content:flex-end}
+.clipn svg{width:14px;height:14px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 4px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.kpi .k{font-size:12px;color:var(--muted)}
+.kpi .v{font:700 22px/1.2 var(--mono)}
+@media (max-width:380px){.kpi .v{font-size:18px}}
+tr.link{cursor:pointer}
+tr.total td{font-weight:700;background:var(--sunk)}
+td .bar{display:inline-block;vertical-align:middle;height:8px;width:calc(var(--w) * .6);max-width:60px;border-radius:2px;background:var(--accent);opacity:.55;margin-right:8px}
+.seg2{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:10px;padding:4px;margin-bottom:10px}
+.seg2 button{border:0;background:none;border-radius:7px;padding:10px;font-weight:700;cursor:pointer;color:var(--muted);display:flex;gap:6px;justify-content:center;align-items:center}
+.seg2 button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.prose{white-space:pre-wrap;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}
+.atts{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.att{position:relative}
+.att-open{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:0;overflow:hidden;cursor:pointer;display:grid;text-align:left}
+.att-open img,.att-doc{width:100%;aspect-ratio:1;object-fit:cover;background:var(--sunk);display:grid;place-items:center;align-content:center;gap:4px;color:var(--muted)}
+.att-doc svg{width:30px;height:30px}
+.att-doc b{font:700 11px/1 var(--mono)}
+.att-name{font-size:12px;padding:6px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-x{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(6,11,16,.7);color:#fff;display:grid;place-items:center;cursor:pointer}
+.att-x svg{width:14px;height:14px}
+.attach-btn{position:relative;overflow:hidden;justify-self:start}
+.attach-btn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:100px}
+.viewer{display:grid;gap:10px}
+.viewer img{width:100%;border-radius:8px;background:var(--sunk)}
+.viewer iframe{width:100%;height:65vh;border:1px solid var(--line);border-radius:8px;background:#fff}
+.viewer .empty svg{width:40px;height:40px}
+.x svg{width:22px;height:22px}
 
 /* PIN gate */
 .gate{min-height:100vh;display:grid;place-items:center;background:var(--ink);color:var(--on-ink);padding:24px max(16px,env(safe-area-inset-left,0px))}
@@ -185,7 +224,7 @@ nav.tabs .wrap{display:grid;grid-template-columns:repeat(5,1fr);align-items:end;
   <form class="box" id="gateForm" autocomplete="off">
     <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="square"><path d="M12 4v16M4 12h16"/></svg></div>
     <h1>EMS Trucks</h1>
-    <p>Enter the station PIN to log fuel and maintenance.</p>
+    <p>Enter the station PIN to track truck maintenance.</p>
     <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="10" aria-label="Station PIN" placeholder="••••••">
     <div class="err" id="gateErr" hidden></div>
     <button class="btn primary" type="submit" id="gateBtn">Unlock</button>
@@ -196,7 +235,7 @@ nav.tabs .wrap{display:grid;grid-template-columns:repeat(5,1fr);align-items:end;
 <header class="top">
   <div class="wrap">
     <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="square"><path d="M12 4v16M4 12h16"/></svg></div>
-    <div class="brand">EMS Trucks<small id="whoami">Fuel &amp; maintenance</small></div>
+    <div class="brand">EMS Trucks<small id="whoami">Maintenance</small></div>
     <div class="spacer"></div>
     <button class="refresh" id="refreshBtn" aria-label="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg></button>
   </div>
@@ -208,9 +247,9 @@ nav.tabs .wrap{display:grid;grid-template-columns:repeat(5,1fr);align-items:end;
 <nav class="tabs" aria-label="Sections">
   <div class="wrap">
     <button class="tab" data-tab="trucks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M2 16V7h11v9M13 10h4l4 4v2h-8"/><circle cx="6.5" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>Trucks</button>
-    <button class="tab" data-tab="fuel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M6 9h6M14 11h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg>Fuel Log</button>
-    <button class="tab center" data-tab="addFuel" aria-label="Add fuel"><span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>Add Fuel</button>
-    <button class="tab" data-tab="monthly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8 14h2M14 14h2M8 17h2"/></svg>Monthly</button>
+    <button class="tab" data-tab="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</button>
+    <button class="tab center" data-tab="logService" aria-label="Log service"><span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>Log Service</button>
+    <button class="tab" data-tab="maint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>Maintenance</button>
     <button class="tab" data-tab="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>More</button>
   </div>
 </nav>
@@ -223,7 +262,7 @@ nav.tabs .wrap{display:grid;grid-template-columns:repeat(5,1fr);align-items:end;
 (function(){
 var SERVICE_TYPES=["Oil Change","Tire Rotation","Brake Inspection","Transmission Fluid","Inspection","Registration","Other"];
 var ROLES=["Admin","Manager","User"];
-var S={trucks:[],fuel:[],maint:[],users:[],role:null,pin:"",view:"trucks",param:null,fuelTruck:"all",loaded:false};
+var S={trucks:[],fuel:[],maint:[],users:[],role:null,pin:"",view:"trucks",param:null,rTruck:"all",rMode:"month",mTruck:"all",mTab:"upcoming",loaded:false};
 var photoCache={}, photoPending={}, photoTries={};
 
 /* ---------- storage (per phone) ---------- */
@@ -277,128 +316,192 @@ function hydratePhotos(){
   });
 }
 
-/* ---------- computed values (ported from the AppSheet formulas) ---------- */
-function fuelFor(tid){return S.fuel.filter(function(f){return f.truck===tid;}).sort(function(a,b){return a.ts<b.ts?-1:1;});}
+/* ---------- computed values ---------- */
+function fuelFor(tid){return S.fuel.filter(function(f){return f.truck===tid&&f.odo!=null;}).sort(function(a,b){return a.ts<b.ts?-1:1;});}
+function lastFill(tid){var r=fuelFor(tid);return r.length?r[r.length-1]:null;}
 function lastOdo(tid){var r=fuelFor(tid);return r.length?r[r.length-1].odo:null;}
-function lastOdoExcept(tid,ex){var r=fuelFor(tid).filter(function(x){return x.id!==ex;});return r.length?r[r.length-1].odo:null;}
-function maxOdo(tid){var r=fuelFor(tid);return r.length?Math.max.apply(null,r.map(function(x){return x.odo;})):null;}
-function ytd(tid){var now=new Date(),start=now.getFullYear()+"-01-01",end=ymd(now)+"T23:59:59";
-  var r=fuelFor(tid).filter(function(f){return f.ts>=start&&f.ts<=end;}); if(!r.length) return {gal:0,miles:0};
-  var o=r.map(function(x){return x.odo;}); return {gal:r.reduce(function(s,x){return s+(+x.gal||0);},0),miles:Math.max.apply(null,o)-Math.min.apply(null,o)};}
-function monthly(){var out={};
-  S.trucks.forEach(function(t){ var r=fuelFor(t.id); var months=[]; r.forEach(function(x){var m=x.ts.slice(0,7); if(months.indexOf(m)<0) months.push(m);});
-    months.forEach(function(m){ var inM=r.filter(function(x){return x.ts.slice(0,7)===m;}); var first=inM[0].ts;
-      var before=r.filter(function(x){return x.ts<first;}); var hi=Math.max.apply(null,inM.map(function(x){return x.odo;}));
-      var base=before.length?Math.max.apply(null,before.map(function(x){return x.odo;})):Math.min.apply(null,inM.map(function(x){return x.odo;}));
-      var gal=inM.reduce(function(s,x){return s+(+x.gal||0);},0), miles=hi-base;
-      (out[m]=out[m]||[]).push({truck:t.id,miles:miles,gal:gal,mpg:gal>0&&miles>0?miles/gal:null}); }); });
-  return out;}
-function nextServiceText(m){ if(m.nextBy==="Date") return m.nextDate?fmtDate(m.nextDate):""; if(m.nextBy==="Mileage") return m.nextMiles!=null?n0(m.nextMiles)+" miles":""; return ""; }
-function isUpcoming(m){ var soon=new Date(); soon.setHours(0,0,0,0); soon.setDate(soon.getDate()+15);
-  var byDate=m.nextDate&&toDate(m.nextDate)<=soon; var mx=maxOdo(m.truck);
-  var byMiles=m.nextMiles!=null&&mx!=null&&Number(m.nextMiles)<=mx+500; return !!(byDate||byMiles); }
+/* Current odometer: the highest reading from fill-ups or service records. */
+function maxOdo(tid){ var o=fuelFor(tid).map(function(x){return x.odo;}).concat(S.maint.filter(function(m){return m.truck===tid&&m.odo!=null;}).map(function(m){return m.odo;}));
+  return o.length?Math.max.apply(null,o):null; }
+/* Miles for a period = highest odometer in the period minus the highest reading before it
+   (or the period's lowest reading when there is nothing earlier). Same rule the AppSheet app used. */
+function periodStats(tid,keyLen){ var r=fuelFor(tid), keys=[], out={};
+  r.forEach(function(x){var k=x.ts.slice(0,keyLen); if(keys.indexOf(k)<0) keys.push(k);});
+  var all=S.fuel.filter(function(f){return f.truck===tid;});
+  all.forEach(function(x){var k=x.ts.slice(0,keyLen); if(keys.indexOf(k)<0) keys.push(k);});
+  keys.forEach(function(k){ var inP=r.filter(function(x){return x.ts.slice(0,keyLen)===k;});
+    var gal=all.filter(function(x){return x.ts.slice(0,keyLen)===k;}).reduce(function(s,x){return s+(+x.gal||0);},0);
+    var fills=all.filter(function(x){return x.ts.slice(0,keyLen)===k;}).length;
+    if(!inP.length){ out[k]={miles:0,gal:gal,fills:fills,mpg:null}; return; } var first=inP[0].ts;
+    var before=r.filter(function(x){return x.ts<first;}); var hi=Math.max.apply(null,inP.map(function(x){return x.odo;}));
+    var base=before.length?Math.max.apply(null,before.map(function(x){return x.odo;})):inP[0].odo;
+    var miles=Math.max(0,hi-base);
+    out[k]={miles:miles,gal:gal,fills:fills,mpg:gal>0&&miles>0?miles/gal:null}; });
+  return out; }
+function yearStats(tid){ var y=String(new Date().getFullYear()); return periodStats(tid,4)[y]||{miles:0,gal:0,fills:0,mpg:null}; }
+
+/* Upcoming: the newest record of each service type per truck carries the reminder, so an
+   older reminder drops off once that service is logged again. */
+function scheduled(){ var latest={};
+  S.maint.forEach(function(m){ var k=m.truck+"|"+(m.type||"").toLowerCase(); var c=latest[k]; if(!c||m.date>c.date) latest[k]=m; });
+  return Object.keys(latest).map(function(k){return latest[k];}).filter(function(m){ return (m.nextBy==="Date"&&m.nextDate)||(m.nextBy==="Mileage"&&m.nextMiles!=null); })
+    .map(dueInfo).sort(function(a,b){return a.rank-b.rank||a.sort-b.sort;}); }
+function dueInfo(m){ var today=new Date(); today.setHours(0,0,0,0);
+  if(m.nextBy==="Date"){ var d=toDate(m.nextDate), days=Math.round((d-today)/864e5);
+    var st=days<0?"overdue":days<=15?"soon":"ok";
+    var txt=days<0?Math.abs(days)+" day"+(Math.abs(days)===1?"":"s")+" overdue":days===0?"Due today":"In "+days+" day"+(days===1?"":"s");
+    return {m:m,status:st,rank:{overdue:0,soon:1,ok:2}[st],sort:days,when:fmtDate(m.nextDate),left:txt}; }
+  var cur=maxOdo(m.truck), left=cur==null?null:Number(m.nextMiles)-cur;
+  var st2=left==null?"ok":left<0?"overdue":left<=500?"soon":"ok";
+  return {m:m,status:st2,rank:{overdue:0,soon:1,ok:2}[st2],sort:left==null?1e9:left/30,when:"at "+n0(m.nextMiles)+" mi",
+    left:left==null?"No odometer yet":left<0?n0(-left)+" mi overdue":n0(left)+" mi to go"}; }
+function dueFor(tid){ return scheduled().filter(function(x){return x.m.truck===tid;}); }
+function dueCount(tid){ return dueFor(tid).filter(function(x){return x.status!=="ok";}).length; }
+function dueChip(x){ return '<span class="chip '+(x.status==="overdue"?"bad":x.status==="soon"?"warn":"")+'">'+(x.status==="overdue"?"Overdue":x.status==="soon"?"Due soon":"Scheduled")+'</span>'; }
+
 function regChip(t){ if(!t.regExp) return '<span class="chip">No registration date</span>';
   var d=toDate(t.regExp),today=new Date(); today.setHours(0,0,0,0); var days=Math.round((d-today)/864e5);
   if(days<0) return '<span class="chip bad">Registration expired '+fmtDate(t.regExp)+'</span>';
   if(days<=60) return '<span class="chip warn">Registration due '+fmtDate(t.regExp)+'</span>';
   return '<span class="chip ok">Reg. good to '+fmtDate(t.regExp)+'</span>'; }
+
+/* Attachments: the sheet keeps a Drive path per file. */
+function attName(p){ var n=String(p).split("/").pop(); var m=/^Attach\.\d{8}-\d{6}\.(.+)$/.exec(n); if(m) return m[1];
+  if(/^(Photo|Truck)\.[\d-]+\.\w+$/.test(n)||/\.(Photo|Attachments|Truck Image)\.\d+\.\w+$/.test(n)||/^[0-9a-f]{8}\.\w+$/i.test(n)) return "Photo"; return n; }
+function attExt(p){ var m=/\.([a-z0-9]+)$/i.exec(String(p)); return m?m[1].toLowerCase():""; }
+function isImg(p){ return ["jpg","jpeg","png","gif","webp","heic","heif"].indexOf(attExt(p))>=0; }
+function attLabel(n){ return n+" attachment"+(n===1?"":"s"); }
+function attTile(p,removable){ var name=attName(p);
+  return '<div class="att"><button type="button" class="att-open" data-open-att="'+esc(p)+'" aria-label="Open '+esc(name)+'">'+
+    (isImg(p)?'<img data-photo="'+esc(p)+'" alt="">':'<span class="att-doc">'+icon("doc")+'<b>'+esc(attExt(p).toUpperCase()||"FILE")+'</b></span>')+
+    '<span class="att-name">'+esc(name)+'</span></button>'+
+    (removable?'<button type="button" class="att-x" data-remove-att="'+esc(p)+'" aria-label="Remove '+esc(name)+'">'+icon("x")+'</button>':'')+'</div>'; }
+
 function icon(n){return {plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   wrench:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>',
-  fuel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M6 9h6M14 11h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg>'}[n]||"";}
+  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+  clip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'}[n]||"";}
 
 /* ---------- views ---------- */
 function render(){
   var v=$("#view");
   document.querySelectorAll(".tab").forEach(function(b){ var tab=b.dataset.tab;
-    var cur=tab===S.view||(tab==="trucks"&&S.view==="truck")||(tab==="more"&&["maintenance","upcoming","users","settings"].indexOf(S.view)>=0);
+    var cur=tab===S.view||(tab==="trucks"&&S.view==="truck")||(tab==="more"&&["users","settings"].indexOf(S.view)>=0);
     if(cur) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
   $("#whoami").textContent=isAdmin()?"Admin":"Crew";
   var fab=$("#fab"); fab.hidden=true;
   if(!S.loaded){ v.innerHTML='<h1 class="view">Trucks</h1><div class="panel"><div class="empty">Loading from the sheet…</div></div>'; return; }
-  var views={trucks:viewTrucks,truck:viewTruck,fuel:viewFuel,monthly:viewMonthly,more:viewMore,maintenance:viewMaint,upcoming:viewUpcoming,users:viewUsers,settings:viewSettings};
+  var views={trucks:viewTrucks,truck:viewTruck,reports:viewReports,maint:viewMaint,more:viewMore,users:viewUsers,settings:viewSettings};
   (views[S.view]||viewTrucks)(v,fab);
   hydratePhotos();
 }
+function chips(attr,cur,allLabel){ return '<div class="filters" role="group" aria-label="Choose a truck"><button class="seg" '+attr+'="all" aria-pressed="'+(cur==="all")+'">'+allLabel+'</button>'+
+  sortedTrucks().map(function(t){return '<button class="seg" '+attr+'="'+esc(t.id)+'" aria-pressed="'+(cur===t.id)+'">'+esc(t.name)+'</button>';}).join("")+'</div>'; }
+function sortedTrucks(){ return S.trucks.slice().sort(function(a,b){return (a.truckId||0)-(b.truckId||0);}); }
 
 function viewTrucks(v,fab){
-  var up=S.maint.filter(isUpcoming);
-  var list=S.trucks.slice().sort(function(a,b){return (a.truckId||0)-(b.truckId||0);});
-  v.innerHTML='<h1 class="view">Trucks</h1><p class="sub">'+list.length+' vehicles · totals are for '+new Date().getFullYear()+' so far</p>'+
-  (list.length?'<div class="trucks">'+list.map(function(t){ var y=ytd(t.id); var u=up.filter(function(m){return m.truck===t.id;}).length;
+  var list=sortedTrucks(), yr=new Date().getFullYear();
+  v.innerHTML='<h1 class="view">Trucks</h1><p class="sub">'+list.length+' vehicles · tap a truck for its full record</p>'+
+  (list.length?'<div class="trucks">'+list.map(function(t){ var y=yearStats(t.id), u=dueCount(t.id);
     return '<button class="truck" data-open-truck="'+esc(t.id)+'"><div class="photo"><span class="ph">'+esc(initials(t.name))+'</span>'+photoImg(t.image,"")+'</div>'+
       '<div class="body"><div class="row"><div class="grow"><div class="tname">'+esc(t.name)+'</div><div class="meta">'+esc(t.plate||"No plate")+'</div></div>'+(u?'<span class="chip warn">'+u+' service due</span>':'')+'</div>'+
-      '<div><div class="label" style="margin-bottom:6px">Last odometer</div>'+odo(lastOdo(t.id))+'</div>'+
-      '<div class="stats"><div class="stat"><div class="v">'+n0(y.miles)+'</div><div class="k">Miles this year</div></div><div class="stat"><div class="v">'+n0(y.gal)+'</div><div class="k">Gallons this year</div></div></div>'+
+      '<div><div class="label" style="margin-bottom:6px">Odometer</div>'+odo(maxOdo(t.id))+'</div>'+
+      '<div class="stats"><div class="stat"><div class="v">'+n0(y.miles)+'</div><div class="k">Miles in '+yr+'</div></div><div class="stat"><div class="v">'+n0(y.gal)+'</div><div class="k">Gallons in '+yr+'</div></div></div>'+
       '<div>'+regChip(t)+'</div></div></button>'; }).join("")+'</div>':'<div class="panel"><div class="empty">No trucks in the sheet yet.</div></div>');
   if(isAdmin()){ fab.hidden=false; fab.innerHTML=icon("plus")+"Add truck"; fab.onclick=function(){truckForm();}; }
 }
 
 function viewTruck(v){
   var t=truckById(S.param); if(!t){ go("trucks"); return; }
-  var y=ytd(t.id), fr=fuelFor(t.id).reverse(), ml=S.maint.filter(function(m){return m.truck===t.id;}).sort(function(a,b){return a.date<b.date?1:-1;});
-  var up=ml.filter(isUpcoming);
+  var yr=new Date().getFullYear(), y=yearStats(t.id), lf=lastFill(t.id), due=dueFor(t.id);
+  var months=periodStats(t.id,7), mk=Object.keys(months).sort().reverse().slice(0,6);
+  var ml=S.maint.filter(function(m){return m.truck===t.id;}).sort(function(a,b){return a.date<b.date?1:-1;});
+  var fills=fuelFor(t.id).reverse().slice(0,5);
   v.innerHTML='<button class="back" data-go="trucks">‹ All trucks</button><div class="stack">'+
   '<div class="hero"><div class="photo"><span class="ph">'+esc(initials(t.name))+'</span>'+photoImg(t.image,t.name)+'</div><div class="body">'+
-    '<div class="row"><div class="grow"><h1 class="view">'+esc(t.name)+'</h1></div>'+(isAdmin()?'<button class="btn" data-edit-truck="'+esc(t.id)+'">Edit</button>':'')+'</div>'+
-    '<div class="row"><button class="btn primary" data-add-fuel="'+esc(t.id)+'">'+icon("fuel")+'Add fuel</button><button class="btn" data-add-maint="'+esc(t.id)+'">'+icon("wrench")+'Log service</button>'+
-    '<button class="btn" data-go="upcoming" data-filter="'+esc(t.id)+'">Upcoming'+(up.length?' <span class="chip warn">'+up.length+'</span>':'')+'</button></div>'+
-    '<div><div class="label" style="margin-bottom:6px">Last odometer</div>'+odo(lastOdo(t.id))+'</div>'+
-    '<div class="kv"><div><div class="k">Miles this year</div><div class="v num">'+n0(y.miles)+'</div></div><div><div class="k">Gallons this year</div><div class="v num">'+n0(y.gal)+'</div></div>'+
+    '<div class="row"><div class="grow"><h1 class="view">'+esc(t.name)+'</h1><div class="meta">'+esc(t.plate||"No plate")+'</div></div>'+(isAdmin()?'<button class="btn" data-edit-truck="'+esc(t.id)+'">Edit</button>':'')+'</div>'+
+    '<div class="row"><button class="btn primary" data-add-maint="'+esc(t.id)+'">'+icon("wrench")+'Log service</button><button class="btn" data-report="'+esc(t.id)+'">'+icon("chart")+'Fuel report</button></div>'+
+    '<div><div class="label" style="margin-bottom:6px">Odometer</div>'+odo(maxOdo(t.id))+(lf?'<div class="hint" style="margin-top:6px">Last fill-up '+esc(fmtDT(lf.ts))+(lf.driver?" · "+esc(lf.driver):"")+'</div>':'')+'</div>'+
+    '<div>'+regChip(t)+'</div>'+
+    '<div class="kv"><div><div class="k">Miles in '+yr+'</div><div class="v num">'+n0(y.miles)+'</div></div><div><div class="k">Gallons in '+yr+'</div><div class="v num">'+n0(y.gal)+'</div></div>'+
+    '<div><div class="k">MPG in '+yr+'</div><div class="v num">'+(y.mpg?y.mpg.toFixed(1):"—")+'</div></div><div><div class="k">Fill-ups in '+yr+'</div><div class="v num">'+n0(y.fills)+'</div></div>'+
     '<div><div class="k">License plate</div><div class="v">'+esc(t.plate||"—")+'</div></div><div><div class="k">VIN</div><div class="v num">'+esc(t.vin||"—")+'</div></div>'+
     '<div><div class="k">Registration expires</div><div class="v">'+(t.regExp?fmtDate(t.regExp):"—")+'</div></div><div><div class="k">Truck ID</div><div class="v num">'+esc(t.truckId==null?"—":t.truckId)+'</div></div></div>'+
   '</div></div>'+
-  '<section><div class="group-h"><h2>Fuel records</h2><span class="label">'+fr.length+'</span></div><div class="panel">'+(fr.length?fr.slice(0,25).map(fuelItem).join(""):'<div class="empty">No fill-ups logged for this truck.</div>')+'</div>'+
-    (fr.length>25?'<p class="hint" style="margin-top:8px">Showing the latest 25. See the Fuel Log for all '+fr.length+'.</p>':'')+'</section>'+
-  '<section><div class="group-h"><h2>Maintenance</h2><span class="label">'+ml.length+'</span></div><div class="panel">'+(ml.length?ml.map(maintItem).join(""):'<div class="empty">No maintenance recorded.</div>')+'</div></section></div>';
+  '<section><div class="group-h"><h2>Upcoming service</h2><span class="label">'+due.length+'</span></div><div class="panel">'+(due.length?due.map(dueItem).join(""):'<div class="empty">Nothing scheduled. Set a next service when you log maintenance.</div>')+'</div></section>'+
+  '<section><div class="group-h"><h2>Recent months</h2><button class="linkbtn" data-report="'+esc(t.id)+'">Full report ›</button></div><div class="panel tablewrap">'+
+    (mk.length?'<table><thead><tr><th>Month</th><th class="n">Miles</th><th class="n">Gallons</th><th class="n">MPG</th></tr></thead><tbody>'+
+     mk.map(function(k){var r=months[k];return '<tr><td>'+esc(monthLabel(k))+'</td><td class="n">'+n0(r.miles)+'</td><td class="n">'+n1(r.gal)+'</td><td class="n">'+(r.mpg?r.mpg.toFixed(1):"—")+'</td></tr>';}).join("")+'</tbody></table>'
+     :'<div class="empty">No fill-ups from the Google Form yet.</div>')+'</div></section>'+
+  '<section><div class="group-h"><h2>Maintenance history</h2><span class="label">'+ml.length+'</span></div><div class="panel">'+(ml.length?ml.map(function(m){return maintItem(m);}).join(""):'<div class="empty">No maintenance recorded.</div>')+'</div></section>'+
+  '<section><div class="group-h"><h2>Latest fill-ups</h2><span class="label">From the Google Form</span></div><div class="panel">'+(fills.length?fills.map(fuelItem).join(""):'<div class="empty">No fill-ups yet.</div>')+'</div></section>'+
+  '</div>';
 }
-function fuelItem(f){ return '<button class="item" data-edit-fuel="'+esc(f.id)+'"><div class="grow"><div class="t">'+esc(fmtDT(f.ts))+'</div><div class="s">'+esc(truckName(f.truck))+(f.driver?" · "+esc(f.driver):"")+'</div></div>'+
-  '<div class="r"><div class="num t">'+n1(f.odo)+' mi</div><div class="s num">'+n1(f.gal)+' gal</div></div></button>'; }
-function maintItem(m){ var nx=nextServiceText(m), up=isUpcoming(m);
-  return '<button class="item" data-edit-maint="'+esc(m.id)+'"><div class="grow"><div class="t">'+esc(m.type||"Service")+' · '+esc(truckName(m.truck))+'</div><div class="s">'+esc(fmtDate(m.date))+' · '+esc(m.provider||"")+(m.work?" — "+esc(m.work):"")+'</div>'+
-  (nx?'<div style="margin-top:6px"><span class="chip '+(up?"warn":"")+'">Next: '+esc(nx)+'</span></div>':'')+'</div><div class="r"><div class="num s">'+n0(m.odo)+' mi</div>'+((m.photos||[]).length?'<div class="s">'+m.photos.length+' photo'+(m.photos.length>1?"s":"")+'</div>':'')+'</div></button>'; }
+function fuelItem(f){ var tag=isAdmin()?'button class="item" data-edit-fuel="'+esc(f.id)+'"':'div class="item static"';
+  return '<'+tag+'><div class="grow"><div class="t">'+esc(fmtDT(f.ts))+'</div><div class="s">'+esc(f.driver||truckName(f.truck))+'</div></div>'+
+  '<div class="r"><div class="num t">'+n1(f.odo)+' mi</div><div class="s num">'+n1(f.gal)+' gal</div></div></'+tag.split(" ")[0]+'>'; }
+function maintItem(m,showTruck){ var n=(m.photos||[]).length;
+  return '<button class="item" data-view-maint="'+esc(m.id)+'"><div class="grow"><div class="t">'+esc(m.type||"Service")+(showTruck?' · '+esc(truckName(m.truck)):'')+'</div>'+
+  '<div class="s">'+esc(fmtDate(m.date))+(m.provider?' · '+esc(m.provider):'')+'</div>'+(m.work?'<div class="s clamp">'+esc(m.work)+'</div>':'')+'</div>'+
+  '<div class="r"><div class="num s">'+n0(m.odo)+' mi</div>'+(n?'<div class="s clipn">'+icon("clip")+n+'</div>':'')+'</div></button>'; }
+function dueItem(x,showTruck){ var m=x.m;
+  return '<button class="item" data-view-maint="'+esc(m.id)+'"><div class="grow"><div class="t">'+esc(m.type||"Service")+(showTruck?' · '+esc(truckName(m.truck)):'')+'</div>'+
+  '<div class="s">Due '+esc(x.when)+' · '+esc(x.left)+'</div><div class="s">Last done '+esc(fmtDate(m.date))+' at '+n0(m.odo)+' mi</div></div><div class="r">'+dueChip(x)+'</div></button>'; }
 
-function viewFuel(v,fab){
-  var list=S.fuel.filter(function(f){return S.fuelTruck==="all"||f.truck===S.fuelTruck;}).sort(function(a,b){return a.ts<b.ts?1:-1;});
-  var groups={},order=[]; list.forEach(function(f){var m=f.ts.slice(0,7); if(!groups[m]){groups[m]=[];order.push(m);} groups[m].push(f);});
-  v.innerHTML='<h1 class="view">Fuel Log</h1><p class="sub">'+list.length+' fill-ups</p>'+
-  '<div class="filters" role="group" aria-label="Filter by truck"><button class="seg" data-fuel-truck="all" aria-pressed="'+(S.fuelTruck==="all")+'">All trucks</button>'+
-  S.trucks.map(function(t){return '<button class="seg" data-fuel-truck="'+esc(t.id)+'" aria-pressed="'+(S.fuelTruck===t.id)+'">'+esc(t.name)+'</button>';}).join("")+'</div>'+
-  (order.length?order.map(function(m){ var rows=groups[m]; return '<section><div class="group-h"><h2>'+esc(monthLabel(m))+'</h2><span class="label num">'+n0(rows.reduce(function(s,x){return s+(+x.gal||0);},0))+' gal</span></div><div class="panel">'+rows.map(fuelItem).join("")+'</div></section>'; }).join("")
-   :'<div class="panel"><div class="empty">No fill-ups yet. Tap Add Fuel to log the first one.</div></div>');
+function viewReports(v){
+  var tid=S.rTruck, mode=S.rMode, yr=new Date().getFullYear();
+  var trucks=tid==="all"?sortedTrucks():[truckById(tid)].filter(Boolean);
+  var keyLen=mode==="year"?4:7, data={};
+  trucks.forEach(function(t){ data[t.id]=periodStats(t.id,keyLen); });
+  var keys=[]; trucks.forEach(function(t){ Object.keys(data[t.id]).forEach(function(k){ if(keys.indexOf(k)<0) keys.push(k); }); }); keys.sort().reverse();
+  var label=function(k){return mode==="year"?k:monthLabel(k);};
+  var tot=trucks.reduce(function(s,t){var y=periodStats(t.id,4)[String(yr)]; if(y){s.miles+=y.miles;s.gal+=y.gal;} return s;},{miles:0,gal:0});
+  var html='<h1 class="view">Reports</h1><p class="sub">Fuel and miles from the Google Form, '+(mode==="year"?"by year":"by month")+'</p>'+
+    chips("data-r-truck",tid,"All trucks")+
+    '<div class="filters" role="group" aria-label="Period"><button class="seg" data-r-mode="month" aria-pressed="'+(mode==="month")+'">By month</button><button class="seg" data-r-mode="year" aria-pressed="'+(mode==="year")+'">By year</button></div>'+
+    '<div class="kpis"><div class="kpi"><div class="k">Miles in '+yr+'</div><div class="v num">'+n0(tot.miles)+'</div></div><div class="kpi"><div class="k">Gallons in '+yr+'</div><div class="v num">'+n0(tot.gal)+'</div></div>'+
+    '<div class="kpi"><div class="k">MPG in '+yr+'</div><div class="v num">'+(tot.gal>0&&tot.miles>0?(tot.miles/tot.gal).toFixed(1):"—")+'</div></div></div>';
+  if(!keys.length){ v.innerHTML=html+'<div class="panel"><div class="empty">No fill-ups from the Google Form yet.</div></div>'; return; }
+  if(tid==="all"){
+    html+=keys.map(function(k){ var rows=trucks.map(function(t){return {t:t,r:data[t.id][k]};}).filter(function(x){return x.r;});
+      var tm=rows.reduce(function(s,x){return s+x.r.miles;},0), tg=rows.reduce(function(s,x){return s+x.r.gal;},0);
+      return '<section><div class="group-h"><h2>'+esc(label(k))+'</h2><span class="label num">'+n0(tm)+' mi · '+n0(tg)+' gal</span></div><div class="panel tablewrap"><table><thead><tr><th>Truck</th><th class="n">Miles</th><th class="n">Gallons</th><th class="n">MPG</th></tr></thead><tbody>'+
+        rows.map(function(x){return '<tr data-report="'+esc(x.t.id)+'" class="link"><td>'+esc(x.t.name)+'</td><td class="n">'+n0(x.r.miles)+'</td><td class="n">'+n1(x.r.gal)+'</td><td class="n">'+(x.r.mpg?x.r.mpg.toFixed(1):"—")+'</td></tr>';}).join("")+
+        (rows.length>1?'<tr class="total"><td>All trucks</td><td class="n">'+n0(tm)+'</td><td class="n">'+n1(tg)+'</td><td class="n">'+(tg>0&&tm>0?(tm/tg).toFixed(1):"—")+'</td></tr>':'')+'</tbody></table></div></section>'; }).join("");
+  } else {
+    var d=data[tid], max=Math.max.apply(null,keys.map(function(k){return d[k].miles;}).concat([1]));
+    var groups=mode==="year"?[{h:"All years",ks:keys}]:keys.reduce(function(a,k){var y=k.slice(0,4),g=a.filter(function(x){return x.h===y;})[0]; if(!g){g={h:y,ks:[]};a.push(g);} g.ks.push(k); return a;},[]);
+    html+=groups.map(function(g){ var tm=g.ks.reduce(function(s,k){return s+d[k].miles;},0), tg=g.ks.reduce(function(s,k){return s+d[k].gal;},0);
+      return '<section><div class="group-h"><h2>'+esc(g.h)+'</h2><span class="label num">'+n0(tm)+' mi · '+n0(tg)+' gal</span></div><div class="panel tablewrap"><table><thead><tr><th>'+(mode==="year"?"Year":"Month")+'</th><th class="n">Miles</th><th class="n">Gallons</th><th class="n">MPG</th><th class="n hide-sm">Fill-ups</th></tr></thead><tbody>'+
+        g.ks.map(function(k){var r=d[k];return '<tr><td>'+esc(mode==="year"?k:new Date(+k.slice(0,4),+k.slice(5)-1,1).toLocaleDateString(undefined,{month:"long"}))+'</td><td class="n"><span class="bar" style="--w:'+Math.round(r.miles/max*100)+'%"></span>'+n0(r.miles)+'</td><td class="n">'+n1(r.gal)+'</td><td class="n">'+(r.mpg?r.mpg.toFixed(1):"—")+'</td><td class="n hide-sm">'+r.fills+'</td></tr>';}).join("")+'</tbody></table></div></section>'; }).join("");
+  }
+  v.innerHTML=html+'<p class="hint" style="margin-top:14px">Miles for a period = the highest odometer reading in it minus the highest reading before it (or the truck\'s first reading). Gallons are every fill-up logged on the Google Form in that period.</p>';
 }
 
-function viewMonthly(v){
-  var data=monthly(); var keys=Object.keys(data).sort().reverse();
-  v.innerHTML='<h1 class="view">Monthly Summary</h1><p class="sub">Miles driven and fuel used per truck, by month</p>'+
-  (keys.length?keys.map(function(k){ var rows=data[k].sort(function(a,b){return truckName(a.truck).localeCompare(truckName(b.truck));});
-    var tm=rows.reduce(function(s,r){return s+r.miles;},0), tg=rows.reduce(function(s,r){return s+r.gal;},0);
-    return '<section><div class="group-h"><h2>'+esc(monthLabel(k))+'</h2><span class="label num">'+n0(tm)+' mi · '+n0(tg)+' gal</span></div><div class="panel tablewrap"><table><thead><tr><th>Truck</th><th class="n">Miles</th><th class="n">Gallons</th><th class="n">MPG</th></tr></thead><tbody>'+
-      rows.map(function(r){return '<tr><td>'+esc(truckName(r.truck))+'</td><td class="n">'+n0(r.miles)+'</td><td class="n">'+n0(r.gal)+'</td><td class="n">'+(r.mpg?r.mpg.toFixed(1):"—")+'</td></tr>';}).join("")+'</tbody></table></div></section>'; }).join("")
-   :'<div class="panel"><div class="empty">The summary fills in once fuel is logged.</div></div>')+
-  '<p class="hint" style="margin-top:14px">Miles for a month = highest odometer that month minus the highest reading before it (or the month\'s lowest reading for a truck\'s first month).</p>';
+function viewMaint(v,fab){
+  var tid=S.mTruck, tab=S.mTab;
+  var due=scheduled().filter(function(x){return tid==="all"||x.m.truck===tid;});
+  var log=S.maint.filter(function(m){return tid==="all"||m.truck===tid;}).sort(function(a,b){return a.date<b.date?1:-1;});
+  var alert=due.filter(function(x){return x.status!=="ok";}).length;
+  v.innerHTML='<h1 class="view">Maintenance</h1><p class="sub">'+log.length+' service records · '+(alert?alert+' due or overdue':'nothing due right now')+'</p>'+
+    '<div class="seg2" role="tablist"><button role="tab" data-m-tab="upcoming" aria-selected="'+(tab==="upcoming")+'">Upcoming'+(alert?' <span class="chip warn">'+alert+'</span>':'')+'</button><button role="tab" data-m-tab="log" aria-selected="'+(tab==="log")+'">Log</button></div>'+
+    chips("data-m-truck",tid,"All trucks")+
+    (tab==="upcoming"
+      ?'<div class="panel">'+(due.length?due.map(function(x){return dueItem(x,tid==="all");}).join(""):'<div class="empty">Nothing scheduled. Set a next service date or mileage when you log maintenance.</div>')+'</div>'+
+       '<p class="hint" style="margin-top:10px">Due soon = within 15 days or 500 miles. Each service type uses the next service set on its most recent record.</p>'
+      :'<div class="panel">'+(log.length?log.map(function(m){return maintItem(m,tid==="all");}).join(""):'<div class="empty">No maintenance recorded yet.</div>')+'</div>');
+  fab.hidden=false; fab.innerHTML=icon("wrench")+"Log service"; fab.onclick=function(){maintForm(null,tid!=="all"?tid:null);};
 }
 
 function viewMore(v){
-  var up=S.maint.filter(isUpcoming).length;
-  v.innerHTML='<h1 class="view">More</h1><p class="sub">Maintenance, reminders and settings</p><div class="panel">'+
-    '<button class="item" data-go="upcoming"><div class="grow"><div class="t">Upcoming Maintenance</div><div class="s">Due within 15 days or 500 miles</div></div>'+(up?'<span class="chip warn">'+up+'</span>':'')+'</button>'+
-    '<button class="item" data-go="maintenance"><div class="grow"><div class="t">Maintenance Log</div><div class="s">Every service record</div></div><span class="chip">'+S.maint.length+'</span></button>'+
+  v.innerHTML='<h1 class="view">More</h1><p class="sub">Users and settings</p><div class="panel">'+
     (isAdmin()?'<button class="item" data-go="users"><div class="grow"><div class="t">Users</div><div class="s">Crew list and roles</div></div><span class="chip">'+S.users.length+'</span></button>':'')+
-    '<button class="item" data-go="settings"><div class="grow"><div class="t">Settings</div><div class="s">'+(isAdmin()?"Change PINs, lock this phone":"Admin access, lock this phone")+'</div></div></button></div>';
+    '<button class="item" data-go="settings"><div class="grow"><div class="t">Settings</div><div class="s">'+(isAdmin()?"Change PINs, lock this phone":"Admin access, lock this phone")+'</div></div></button></div>'+
+    '<p class="hint" style="margin-top:14px">Fuel and mileage are logged on the Google Form. They appear here after a refresh.</p>';
 }
-function viewMaint(v,fab){
-  var list=S.maint.slice().sort(function(a,b){return a.date<b.date?1:-1;});
-  v.innerHTML='<button class="back" data-go="more">‹ More</button><h1 class="view">Maintenance Log</h1><p class="sub">'+list.length+' records</p><div class="panel">'+(list.length?list.map(maintItem).join(""):'<div class="empty">No maintenance recorded yet.</div>')+'</div>';
-  fab.hidden=false; fab.innerHTML=icon("wrench")+"Log service"; fab.onclick=function(){maintForm();};
-}
-function viewUpcoming(v){
-  var f=S.param; var list=S.maint.filter(isUpcoming).filter(function(m){return !f||m.truck===f;}).sort(function(a,b){return truckName(a.truck).localeCompare(truckName(b.truck));});
-  v.innerHTML=(f?'<button class="back" data-open-truck="'+esc(f)+'">‹ '+esc(truckName(f))+'</button>':'<button class="back" data-go="more">‹ More</button>')+
-  '<h1 class="view">Upcoming Maintenance</h1><p class="sub">'+(f?esc(truckName(f))+" · ":"")+'service due within 15 days, or within 500 miles of the truck\'s highest odometer reading</p>'+
-  '<div class="panel tablewrap">'+(list.length?'<table><thead><tr><th>Truck</th><th>Service</th><th class="n">Odometer</th><th>Next service</th></tr></thead><tbody>'+
-   list.map(function(m){return '<tr data-edit-maint="'+esc(m.id)+'" style="cursor:pointer"><td>'+esc(truckName(m.truck))+'</td><td>'+esc(m.type||"")+'</td><td class="n">'+n0(m.odo)+'</td><td>'+esc(nextServiceText(m)||"—")+'</td></tr>';}).join("")+'</tbody></table>'
-   :'<div class="empty">Nothing due. You\'re caught up.</div>')+'</div>';
-}
+function nextServiceText(m){ if(m.nextBy==="Date") return m.nextDate?fmtDate(m.nextDate):""; if(m.nextBy==="Mileage") return m.nextMiles!=null?n0(m.nextMiles)+" miles":""; return ""; }
 function viewUsers(v,fab){
   if(!isAdmin()){ go("more"); return; }
   var list=S.users.slice().sort(function(a,b){return (a.username||"").localeCompare(b.username||"");});
@@ -415,7 +518,7 @@ function viewSettings(v){
    :'<form class="panel" id="adminForm" style="padding:16px;display:grid;gap:14px"><div class="label">Admin access</div><div class="field"><label for="adminPin">Admin PIN</label><input id="adminPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="10"></div>'+
      '<div class="hint">Admins can add and edit trucks and users, and delete records.</div><div class="err" id="adminErr" hidden></div><button class="btn" type="submit">Unlock admin</button></form>')+
   '<div class="panel" style="padding:16px;display:grid;gap:12px"><div class="label">This phone</div><div class="hint">Locking removes the saved PIN from this phone.</div><button class="btn danger" id="lockBtn" type="button">Lock this phone</button></div>'+
-  '<p class="hint">Data lives in the “Gas Records (Responses)” Google Sheet. Fuel goes to the “Form Responses 5” tab, so the old Google Form keeps working too.</p></div>';
+  '<p class="hint">Data lives in the “Gas Records (Responses)” Google Sheet. Fuel and mileage come from the Google Form (the “Form Responses 5” tab).</p></div>';
   var pf=$("#pinForm"); if(pf) pf.onsubmit=function(e){ e.preventDefault(); var c=$("#newCrew").value.trim(), a=$("#newAdmin").value.trim();
     api("changePins",S.pin,c,a).then(function(){ S.pin=a; store("emsPin",a); toast("PINs changed"); pf.reset(); }).catch(function(err){ var x=$("#pinErr"); x.textContent=msg(err); x.hidden=false; }); };
   var af=$("#adminForm"); if(af) af.onsubmit=function(e){ e.preventDefault(); var p=$("#adminPin").value.trim();
@@ -457,7 +560,7 @@ function fuelForm(id,preset){
   var ts=f?f.ts.slice(0,16):localStamp(new Date()).slice(0,16);
   var truck=f?f.truck:(preset||store("emsLastTruck")||"");
   if(truck&&!truckById(truck)) truck="";
-  openSheet({title:f?"Fuel record":"Add fuel", saveLabel:f?"Save":"Log fuel",
+  openSheet({title:"Fuel record (from Google Form)", saveLabel:"Save",
     body:'<div class="field"><label for="fTruck">Truck <span class="req">*</span></label><select id="fTruck" name="truck">'+truckOptions(truck)+'</select><div class="hint" id="fLast"></div></div>'+
       '<div class="two"><div class="field"><label for="fOdo">Odometer <span class="req">*</span></label><input id="fOdo" class="big" name="odo" type="number" inputmode="decimal" step="0.1" min="0" value="'+(f?esc(f.odo):"")+'"></div>'+
       '<div class="field"><label for="fGal">Gallons <span class="req">*</span></label><input id="fGal" class="big" name="gal" type="number" inputmode="decimal" step="0.001" min="0" value="'+(f?esc(f.gal):"")+'"></div></div>'+
@@ -479,11 +582,54 @@ function fuelForm(id,preset){
     onDelete:f&&isAdmin()?function(){ return api("deleteFuel",S.pin,f.id); }:null });
 }
 
+/* Read-only view of a service record, with its attachments. */
+function openPanel(title,body,foot){
+  var host=$("#sheetHost");
+  host.innerHTML='<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(title)+'">'+
+    '<header><h2>'+esc(title)+'</h2><button type="button" class="x" id="sheetClose" aria-label="Close">'+icon("x")+'</button></header>'+
+    '<div class="content">'+body+'</div>'+(foot?'<footer>'+foot+'</footer>':'')+'</div></div>';
+  function close(){ host.innerHTML=""; document.removeEventListener("keydown",onKey); }
+  function onKey(e){ if(e.key==="Escape") close(); }
+  document.addEventListener("keydown",onKey);
+  $("#sheetClose").onclick=close; $("#scrim").addEventListener("mousedown",function(e){ if(e.target.id==="scrim") close(); });
+  hydratePhotos(); return close;
+}
+function maintView(id){
+  var m=S.maint.filter(function(x){return x.id===id;})[0]; if(!m) return;
+  var due=scheduled().filter(function(x){return x.m.id===m.id;})[0], nx=nextServiceText(m), atts=m.photos||[];
+  openPanel((m.type||"Service")+" · "+truckName(m.truck),
+    '<div class="kv"><div><div class="k">Service date</div><div class="v">'+esc(fmtDate(m.date))+'</div></div><div><div class="k">Odometer</div><div class="v num">'+n0(m.odo)+' mi</div></div>'+
+    '<div><div class="k">Service provider</div><div class="v">'+esc(m.provider||"—")+'</div></div><div><div class="k">Next service</div><div class="v">'+esc(nx||"None set")+(due?' '+dueChip(due):'')+'</div></div></div>'+
+    '<div><div class="label" style="margin-bottom:6px">Work performed / noted</div><div class="prose">'+esc(m.work||"—")+'</div></div>'+
+    '<div><div class="label" style="margin-bottom:8px">'+attLabel(atts.length)+'</div>'+(atts.length?'<div class="atts">'+atts.map(function(p){return attTile(p,false);}).join("")+'</div>':'<div class="hint">None. Tap Edit to add photos, invoices or other files.</div>')+'</div>',
+    '<button type="button" class="btn" data-close>Close</button><button type="button" class="btn primary" data-edit-maint="'+esc(m.id)+'">Edit</button>');
+  document.querySelector("[data-close]").onclick=function(){ $("#sheetHost").innerHTML=""; };
+}
+
+/* Opens any attachment: photos and PDFs show in the app, other files offer Open / Save. */
+var fileCache={};
+function openAttachment(path){
+  var name=attName(path);
+  var close=openPanel(name,'<div class="viewer" id="viewer"><div class="empty">Opening…</div></div>','<button type="button" class="btn" data-close>Close</button><a class="btn primary" id="vSave" hidden>Save / share</a>');
+  document.querySelector("[data-close]").onclick=close;
+  var p=fileCache[path]?Promise.resolve(fileCache[path]):api("getFile",S.pin,path).then(function(f){
+    var bin=atob(f.data), arr=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    var type=f.type||"application/octet-stream"; var blob=new Blob([arr],{type:type}); var out={url:URL.createObjectURL(blob),type:type}; fileCache[path]=out; return out; });
+  p.then(function(f){ var vw=$("#viewer"); if(!vw) return;
+    if(/^image\//.test(f.type)) vw.innerHTML='<img src="'+f.url+'" alt="'+esc(name)+'">';
+    else if(f.type==="application/pdf") vw.innerHTML='<iframe src="'+f.url+'" title="'+esc(name)+'"></iframe><a class="btn" href="'+f.url+'" target="_blank" rel="noopener">Open PDF full screen</a>';
+    else vw.innerHTML='<div class="empty">'+icon("doc")+'<p>'+esc(name)+'</p><p class="hint">This file type can\'t be shown here. Use Save / share to open it in another app.</p></div>';
+    var s=$("#vSave"); s.href=f.url; s.setAttribute("download",name); s.hidden=false; })
+  .catch(function(e){ var vw=$("#viewer"); if(vw) vw.innerHTML='<div class="empty err">'+esc(msg(e))+'</div>'; });
+}
+
+function readAsDataUrl(file){ return new Promise(function(res,rej){ var r=new FileReader(); r.onerror=function(){rej(new Error("Couldn't read that file."));}; r.onload=function(){res(r.result);}; r.readAsDataURL(file); }); }
+
 function maintForm(id,preset){
   var m=id?S.maint.filter(function(x){return x.id===id;})[0]:null;
   var known=!m||!m.type||SERVICE_TYPES.indexOf(m.type)>=0;
-  var photos=(m&&m.photos||[]).slice();
-  openSheet({title:m?"Maintenance record":"Log service",
+  var atts=(m&&m.photos||[]).slice(), added={};
+  openSheet({title:m?"Edit service record":"Log service", saveLabel:m?"Save":"Log service",
     body:'<div class="field"><label for="mTruck">Truck <span class="req">*</span></label><select id="mTruck" name="truck">'+truckOptions(m?m.truck:(preset||""))+'</select><div class="hint" id="mLast"></div></div>'+
      '<div class="two"><div class="field"><label for="mDate">Service date <span class="req">*</span></label><input id="mDate" name="date" type="date" value="'+esc(m?m.date:ymd(new Date()))+'"></div>'+
      '<div class="field"><label for="mType">Service type</label><select id="mType" name="type">'+SERVICE_TYPES.map(function(s){return '<option'+(((m&&m.type)===s)||(!known&&s==="Other")?" selected":"")+'>'+s+'</option>';}).join("")+'</select></div></div>'+
@@ -494,26 +640,42 @@ function maintForm(id,preset){
      '<div class="field"><label for="mWork">Work performed / noted <span class="req">*</span></label><textarea id="mWork" name="work">'+esc(m?m.work:"")+'</textarea></div>'+
      '<div class="field"><label>Next scheduled service</label><div class="radios">'+["","Date","Mileage"].map(function(o){return '<label class="seg" style="display:inline-flex;gap:6px;align-items:center"><input type="radio" name="nextBy" value="'+o+'"'+(((m&&m.nextBy)||"")===o?" checked":"")+'> '+(o||"None")+'</label>';}).join("")+'</div></div>'+
      '<div class="field" id="mNDWrap"><label for="mND">Next service date</label><input id="mND" name="nextDate" type="date" value="'+esc(m?m.nextDate:"")+'"></div>'+
-     '<div class="field" id="mNMWrap"><label for="mNM">Next service mileage</label><input id="mNM" name="nextMiles" type="number" inputmode="numeric" min="0" value="'+(m&&m.nextMiles!=null?m.nextMiles:"")+'"></div>'+
-     '<div class="field"><label for="mPhoto">Photos</label><div class="thumbs" id="mThumbs"></div><input id="mPhoto" type="file" accept="image/*" multiple><div class="hint" id="mUp"></div></div>',
+     '<div class="field" id="mNMWrap"><label for="mNM">Next service mileage</label><input id="mNM" name="nextMiles" type="number" inputmode="numeric" min="0" value="'+(m&&m.nextMiles!=null?m.nextMiles:"")+'"><div class="hint" id="mNMHint"></div></div>'+
+     '<div class="field"><label for="mFile">Attachments</label><div class="atts" id="mAtts"></div>'+
+       '<label class="btn attach-btn">'+icon("clip")+'Add photos or files<input id="mFile" type="file" multiple accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.heic"></label>'+
+       '<div class="hint" id="mUp">Photos, PDF invoices, work orders. Up to 10 MB each.</div></div>',
     after:function(form){
       function sync(){ var by=(form.querySelector("[name=nextBy]:checked")||{}).value||""; $("#mNDWrap").hidden=by!=="Date"; $("#mNMWrap").hidden=by!=="Mileage";
-        $("#mOtherWrap").hidden=form.type.value!=="Other"; var t=form.truck.value, lo=t?lastOdo(t):null; $("#mLast").textContent=t&&lo!=null?"Last odometer reading: "+n1(lo)+" mi":""; }
-      form.querySelectorAll("[name=nextBy]").forEach(function(r){r.onchange=sync;}); form.type.onchange=sync; form.truck.onchange=sync; sync();
-      function draw(){ $("#mThumbs").innerHTML=photos.map(function(p){return '<img data-photo="'+esc(p)+'" alt="Maintenance photo">';}).join(""); hydratePhotos(); } draw();
-      var fi=$("#mPhoto"); fi.onchange=function(){ var up=$("#mUp"); var files=[].slice.call(fi.files); fi.value="";
-        files.reduce(function(p,file){ return p.then(function(){ up.textContent="Uploading "+file.name+"…"; return shrink(file,1400); })
-          .then(function(d){ return api("uploadPhoto",S.pin,"maint",d).then(function(path){ photoCache[path]=d; photos.push(path); draw(); up.textContent="Photo added. Save to keep it."; }); })
-          .catch(function(ex){ up.textContent="Couldn't upload that photo: "+msg(ex); }); }, Promise.resolve()); };
+        $("#mOtherWrap").hidden=form.type.value!=="Other"; var t=form.truck.value, lo=t?maxOdo(t):null;
+        $("#mLast").textContent=t&&lo!=null?"Current odometer: "+n1(lo)+" mi":"";
+        $("#mNMHint").textContent=lo!=null?"Current odometer: "+n0(lo)+" mi":""; }
+      form.querySelectorAll("[name=nextBy]").forEach(function(r){r.onchange=sync;}); form.type.onchange=sync; form.truck.onchange=sync; form.odo.oninput=sync; sync();
+      function draw(){ var box=$("#mAtts"); box.innerHTML=atts.map(function(p){return attTile(p,added[p]||isAdmin());}).join(""); hydratePhotos(); }
+      draw();
+      $("#mAtts").addEventListener("click",function(e){ var r=e.target.closest("[data-remove-att]"); if(!r) return; e.preventDefault(); e.stopPropagation();
+        var p=r.getAttribute("data-remove-att"); atts=atts.filter(function(x){return x!==p;}); draw(); $("#mUp").textContent="Removed. Save to keep the change."; });
+      var fi=$("#mFile"); fi.onchange=function(){ var up=$("#mUp"), files=[].slice.call(fi.files); fi.value=""; var save=$("#sheetSave");
+        if(!files.length) return; save.disabled=true;
+        files.reduce(function(p,file){ return p.then(function(){ up.textContent="Uploading "+file.name+"…";
+            if(file.size>10*1024*1024) throw new Error(file.name+" is over 10 MB.");
+            var img=/^image\/(jpeg|png|webp|gif|heic|heif)$/i.test(file.type);
+            return (img?shrink(file,1600).catch(function(){return readAsDataUrl(file);}):readAsDataUrl(file)).then(function(d){
+              var nm=img&&/^data:image\/jpeg/.test(d)?file.name.replace(/\.\w+$/,"")+".jpg":file.name;
+              return api("uploadFile",S.pin,d,nm).then(function(path){ if(/^data:image\//.test(d)) photoCache[path]=d; atts.push(path); added[path]=1; draw(); up.textContent="Added "+attName(path)+". Save to keep it."; }); }); })
+          .catch(function(ex){ up.textContent="Couldn't add "+file.name+": "+msg(ex); }); }, Promise.resolve())
+          .then(function(){ save.disabled=false; }); };
     },
     validate:function(form){ if(!form.truck.value) return "Choose a truck."; if(!form.date.value) return "Enter the service date.";
       if(isNaN(parseFloat(form.odo.value))) return "Enter the odometer reading."; if(!form.provider.value.trim()) return "Enter the service provider.";
-      if(!form.work.value.trim()) return "Describe the work performed."; return ""; },
+      if(!form.work.value.trim()) return "Describe the work performed.";
+      var by=(form.querySelector("[name=nextBy]:checked")||{}).value||"";
+      if(by==="Date"&&!form.nextDate.value) return "Enter the next service date, or choose None.";
+      if(by==="Mileage"&&form.nextMiles.value==="") return "Enter the next service mileage, or choose None."; return ""; },
     onSave:function(form){ var type=form.type.value; if(type==="Other"&&form.other.value.trim()) type=form.other.value.trim();
       var by=(form.querySelector("[name=nextBy]:checked")||{}).value||"";
       var rec={truck:form.truck.value,date:form.date.value,type:type,odo:parseFloat(form.odo.value),provider:form.provider.value.trim(),work:form.work.value.trim(),
-        nextBy:by,nextDate:by==="Date"?form.nextDate.value:"",nextMiles:by==="Mileage"&&form.nextMiles.value!==""?Number(form.nextMiles.value):null,photos:photos};
-      return api("saveMaint",S.pin,m?m.id:"",rec).then(function(){ return m?"Maintenance record updated":"Service logged"; }); },
+        nextBy:by,nextDate:by==="Date"?form.nextDate.value:"",nextMiles:by==="Mileage"&&form.nextMiles.value!==""?Number(form.nextMiles.value):null,photos:atts};
+      return api("saveMaint",S.pin,m?m.id:"",rec).then(function(){ return m?"Service record updated":"Service logged"; }); },
     onDelete:m&&isAdmin()?function(){ return api("deleteMaint",S.pin,m.id); }:null });
 }
 
@@ -560,19 +722,23 @@ function shrink(file,max){ return new Promise(function(res,rej){
 /* ---------- navigation ---------- */
 function go(view,param){ S.view=view; S.param=param||null; render(); window.scrollTo(0,0); var mn=document.querySelector("main"); if(mn) mn.scrollTop=0; }
 document.addEventListener("click",function(e){
-  var el=e.target.closest("[data-tab],[data-go],[data-open-truck],[data-edit-fuel],[data-edit-maint],[data-edit-truck],[data-edit-user],[data-add-fuel],[data-add-maint],[data-fuel-truck]");
+  var el=e.target.closest("[data-tab],[data-go],[data-open-truck],[data-edit-fuel],[data-view-maint],[data-edit-maint],[data-edit-truck],[data-edit-user],[data-add-maint],[data-report],[data-r-truck],[data-r-mode],[data-m-truck],[data-m-tab],[data-open-att]");
   if(!el||!S.role) return; var d=el.dataset;
-  if(d.tab){ if(d.tab==="addFuel"){ fuelForm(null,S.view==="truck"?S.param:(S.fuelTruck!=="all"?S.fuelTruck:null)); return; } go(d.tab); return; }
-  if(d.addFuel){ fuelForm(null,d.addFuel); return; }
+  if(d.openAtt){ if(e.target.closest("[data-remove-att]")) return; e.preventDefault(); openAttachment(d.openAtt); return; }
+  if(d.tab){ if(d.tab==="logService"){ maintForm(null,S.view==="truck"?S.param:(S.view==="maint"&&S.mTruck!=="all"?S.mTruck:null)); return; } go(d.tab); return; }
   if(d.addMaint){ maintForm(null,d.addMaint); return; }
   if(d.editTruck){ truckForm(d.editTruck); return; }
-  if(d.go==="upcoming"&&d.filter){ go("upcoming",d.filter); return; }
+  if(d.report){ S.rTruck=d.report; go("reports"); return; }
+  if(d.rTruck){ S.rTruck=d.rTruck; render(); return; }
+  if(d.rMode){ S.rMode=d.rMode; render(); return; }
+  if(d.mTruck){ S.mTruck=d.mTruck; render(); return; }
+  if(d.mTab){ S.mTab=d.mTab; render(); return; }
   if(d.openTruck){ go("truck",d.openTruck); return; }
   if(d.go){ go(d.go); return; }
   if(d.editFuel){ fuelForm(d.editFuel); return; }
-  if(d.editMaint){ maintForm(d.editMaint); return; }
+  if(d.viewMaint){ maintView(d.viewMaint); return; }
+  if(d.editMaint){ $("#sheetHost").innerHTML=""; maintForm(d.editMaint); return; }
   if(d.editUser){ userForm(d.editUser); return; }
-  if(d.fuelTruck){ S.fuelTruck=d.fuelTruck; render(); return; }
 });
 
 /* ---------- load ---------- */

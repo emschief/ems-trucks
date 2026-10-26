@@ -1,7 +1,7 @@
 {
   "name": "EMS Trucks",
   "short_name": "EMS Trucks",
-  "description": "Fuel and maintenance log for the White Horse Fire & EMS trucks.",
+  "description": "Maintenance tracking and fuel reports for the White Horse Fire & EMS trucks.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
