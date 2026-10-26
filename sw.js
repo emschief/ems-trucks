@@ -1,6 +1,6 @@
 /* EMS Trucks service worker: keeps the app screen on the phone so it opens instantly.
    Truck and fuel data always come live from the Google Sheet (never cached here). */
-var CACHE = 'ems-trucks-v1';
+var CACHE = 'ems-trucks-v2';
 var SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
