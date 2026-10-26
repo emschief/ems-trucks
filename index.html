@@ -142,6 +142,13 @@ a.btn.primary{color:var(--on-accent)}
 .hint.warn{color:var(--amber)}
 .err{font-size:14px;color:var(--accent);font-weight:600}
 .radios{display:flex;gap:8px;flex-wrap:wrap}
+.field input[type=checkbox]{width:auto;min-height:0;padding:0}
+.seg.pick{display:inline-flex;gap:6px;align-items:center}
+.seg.pick.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.nexts{display:grid;gap:10px}
+.nx{display:grid;grid-template-columns:minmax(0,1fr) 120px minmax(0,1.2fr);gap:8px;align-items:center}
+.nx-t{font-weight:600}
+@media (max-width:420px){.nx{grid-template-columns:1fr 1fr}.nx-t{grid-column:1/-1}}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:420px){.two{grid-template-columns:1fr}}
 .confirm{background:var(--bad-bg);border-radius:8px;padding:12px;display:grid;gap:10px}
@@ -626,29 +633,55 @@ function readAsDataUrl(file){ return new Promise(function(res,rej){ var r=new Fi
 
 function maintForm(id,preset){
   var m=id?S.maint.filter(function(x){return x.id===id;})[0]:null;
+  var multi=!m; /* new entries can cover several service types; each is saved as its own record */
   var known=!m||!m.type||SERVICE_TYPES.indexOf(m.type)>=0;
   var atts=(m&&m.photos||[]).slice(), added={};
+  var nx={}, done=[];
+  var typeField=multi?
+     '<div class="field"><label>Service types <span class="req">*</span></label><div class="radios" id="mTypes">'+SERVICE_TYPES.map(function(s){return '<label class="seg pick"><input type="checkbox" name="types" value="'+esc(s)+'"> '+esc(s)+'</label>';}).join("")+'</div>'+
+       '<div class="hint">Pick every service done on this visit. Each is listed as its own record with the same date, odometer, notes and attachments.</div></div>':
+     '<div class="field"><label for="mType">Service type</label><select id="mType" name="type">'+SERVICE_TYPES.map(function(s){return '<option'+(((m&&m.type)===s)||(!known&&s==="Other")?" selected":"")+'>'+s+'</option>';}).join("")+'</select></div>';
+  var nextField=multi?
+     '<div class="field" id="mNextWrap"><label>Next scheduled service</label><div class="nexts" id="mNext"></div></div>':
+     '<div class="field"><label>Next scheduled service</label><div class="radios">'+["","Date","Mileage"].map(function(o){return '<label class="seg" style="display:inline-flex;gap:6px;align-items:center"><input type="radio" name="nextBy" value="'+o+'"'+(((m&&m.nextBy)||"")===o?" checked":"")+'> '+(o||"None")+'</label>';}).join("")+'</div></div>'+
+     '<div class="field" id="mNDWrap"><label for="mND">Next service date</label><input id="mND" name="nextDate" type="date" value="'+esc(m?m.nextDate:"")+'"></div>'+
+     '<div class="field" id="mNMWrap"><label for="mNM">Next service mileage</label><input id="mNM" name="nextMiles" type="number" inputmode="numeric" min="0" value="'+(m&&m.nextMiles!=null?m.nextMiles:"")+'"><div class="hint" id="mNMHint"></div></div>';
+  function checked(form){ return [].slice.call(form.querySelectorAll("[name=types]:checked")).map(function(c){return c.value;}); }
+  function typeName(form,t){ return t==="Other"&&form.other.value.trim()?form.other.value.trim():t; }
+  function readNext(){ [].slice.call(document.querySelectorAll("#mNext .nx")).forEach(function(r){
+      nx[r.getAttribute("data-t")]={by:r.querySelector("select").value,val:r.querySelector("input").value}; }); }
+  function drawNext(form){ readNext(); var ts=checked(form), box=$("#mNext");
+    $("#mNextWrap").hidden=!ts.length;
+    box.innerHTML=ts.map(function(t){ var v=nx[t]||{by:"",val:""};
+      return '<div class="nx" data-t="'+esc(t)+'"><div class="nx-t">'+esc(typeName(form,t))+'</div>'+
+        '<select aria-label="Next '+esc(typeName(form,t))+' by">'+["","Date","Mileage"].map(function(o){return '<option value="'+o+'"'+(v.by===o?" selected":"")+'>'+(o||"None")+'</option>';}).join("")+'</select>'+
+        '<input aria-label="Next '+esc(typeName(form,t))+'" '+(v.by==="Date"?'type="date"':'type="number" inputmode="numeric" min="0"'+(v.by===""?' disabled':'')+' placeholder="'+(v.by==="Mileage"?"Miles":"")+'"')+' value="'+esc(v.by?v.val:"")+'"></div>'; }).join("");
+    box.querySelectorAll("select").forEach(function(sel){ sel.onchange=function(){ var r=sel.closest(".nx"); r.querySelector("input").value=""; drawNext(form); }; }); }
   openSheet({title:m?"Edit service record":"Log service", saveLabel:m?"Save":"Log service",
     body:'<div class="field"><label for="mTruck">Truck <span class="req">*</span></label><select id="mTruck" name="truck">'+truckOptions(m?m.truck:(preset||""))+'</select><div class="hint" id="mLast"></div></div>'+
-     '<div class="two"><div class="field"><label for="mDate">Service date <span class="req">*</span></label><input id="mDate" name="date" type="date" value="'+esc(m?m.date:ymd(new Date()))+'"></div>'+
-     '<div class="field"><label for="mType">Service type</label><select id="mType" name="type">'+SERVICE_TYPES.map(function(s){return '<option'+(((m&&m.type)===s)||(!known&&s==="Other")?" selected":"")+'>'+s+'</option>';}).join("")+'</select></div></div>'+
-     '<div class="field" id="mOtherWrap"><label for="mOther">Describe the service</label><input id="mOther" name="other" type="text" value="'+(known?"":esc(m.type))+'"></div>'+
+     '<div class="field"><label for="mDate">Service date <span class="req">*</span></label><input id="mDate" name="date" type="date" value="'+esc(m?m.date:ymd(new Date()))+'"></div>'+
+     typeField+
+     '<div class="field" id="mOtherWrap"><label for="mOther">Describe the other service</label><input id="mOther" name="other" type="text" value="'+(known?"":esc(m.type))+'"></div>'+
      '<div class="two"><div class="field"><label for="mOdo">Odometer <span class="req">*</span></label><input id="mOdo" name="odo" type="number" inputmode="decimal" step="0.1" min="0" value="'+(m?esc(m.odo):"")+'"></div>'+
      '<div class="field"><label for="mProv">Service provider <span class="req">*</span></label><input id="mProv" name="provider" type="text" list="provList" value="'+esc(m?m.provider:"")+'"><datalist id="provList">'+
        S.maint.map(function(x){return x.provider;}).filter(function(p,i,a){return p&&a.indexOf(p)===i;}).map(function(p){return '<option value="'+esc(p)+'">';}).join("")+'</datalist></div></div>'+
      '<div class="field"><label for="mWork">Work performed / noted <span class="req">*</span></label><textarea id="mWork" name="work">'+esc(m?m.work:"")+'</textarea></div>'+
-     '<div class="field"><label>Next scheduled service</label><div class="radios">'+["","Date","Mileage"].map(function(o){return '<label class="seg" style="display:inline-flex;gap:6px;align-items:center"><input type="radio" name="nextBy" value="'+o+'"'+(((m&&m.nextBy)||"")===o?" checked":"")+'> '+(o||"None")+'</label>';}).join("")+'</div></div>'+
-     '<div class="field" id="mNDWrap"><label for="mND">Next service date</label><input id="mND" name="nextDate" type="date" value="'+esc(m?m.nextDate:"")+'"></div>'+
-     '<div class="field" id="mNMWrap"><label for="mNM">Next service mileage</label><input id="mNM" name="nextMiles" type="number" inputmode="numeric" min="0" value="'+(m&&m.nextMiles!=null?m.nextMiles:"")+'"><div class="hint" id="mNMHint"></div></div>'+
+     nextField+
      '<div class="field"><label for="mFile">Attachments</label><div class="atts" id="mAtts"></div>'+
        '<label class="btn attach-btn">'+icon("clip")+'Add photos or files<input id="mFile" type="file" multiple accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.heic"></label>'+
        '<div class="hint" id="mUp">Photos, PDF invoices, work orders. Up to 10 MB each.</div></div>',
     after:function(form){
-      function sync(){ var by=(form.querySelector("[name=nextBy]:checked")||{}).value||""; $("#mNDWrap").hidden=by!=="Date"; $("#mNMWrap").hidden=by!=="Mileage";
-        $("#mOtherWrap").hidden=form.type.value!=="Other"; var t=form.truck.value, lo=t?maxOdo(t):null;
+      function sync(){ var t=form.truck.value, lo=t?maxOdo(t):null;
         $("#mLast").textContent=t&&lo!=null?"Current odometer: "+n1(lo)+" mi":"";
+        if(multi){ $("#mOtherWrap").hidden=checked(form).indexOf("Other")<0;
+          form.querySelectorAll("[name=types]").forEach(function(c){ c.parentNode.classList.toggle("on",c.checked); }); return; }
+        var by=(form.querySelector("[name=nextBy]:checked")||{}).value||""; $("#mNDWrap").hidden=by!=="Date"; $("#mNMWrap").hidden=by!=="Mileage";
+        $("#mOtherWrap").hidden=form.type.value!=="Other";
         $("#mNMHint").textContent=lo!=null?"Current odometer: "+n0(lo)+" mi":""; }
-      form.querySelectorAll("[name=nextBy]").forEach(function(r){r.onchange=sync;}); form.type.onchange=sync; form.truck.onchange=sync; form.odo.oninput=sync; sync();
+      if(multi){ form.querySelectorAll("[name=types]").forEach(function(c){ c.onchange=function(){ sync(); drawNext(form); }; });
+        form.other.oninput=function(){ drawNext(form); }; drawNext(form); }
+      else { form.querySelectorAll("[name=nextBy]").forEach(function(r){r.onchange=sync;}); form.type.onchange=sync; }
+      form.truck.onchange=sync; form.odo.oninput=sync; sync();
       function draw(){ var box=$("#mAtts"); box.innerHTML=atts.map(function(p){return attTile(p,added[p]||isAdmin());}).join(""); hydratePhotos(); }
       draw();
       $("#mAtts").addEventListener("click",function(e){ var r=e.target.closest("[data-remove-att]"); if(!r) return; e.preventDefault(); e.stopPropagation();
@@ -665,16 +698,32 @@ function maintForm(id,preset){
           .then(function(){ save.disabled=false; }); };
     },
     validate:function(form){ if(!form.truck.value) return "Choose a truck."; if(!form.date.value) return "Enter the service date.";
+      if(multi&&!checked(form).length) return "Pick at least one service type.";
       if(isNaN(parseFloat(form.odo.value))) return "Enter the odometer reading."; if(!form.provider.value.trim()) return "Enter the service provider.";
       if(!form.work.value.trim()) return "Describe the work performed.";
+      if(multi){ readNext(); var ts=checked(form);
+        for(var i=0;i<ts.length;i++){ var v=nx[ts[i]]||{by:""};
+          if(v.by==="Date"&&!v.val) return "Enter the next "+typeName(form,ts[i])+" date, or choose None.";
+          if(v.by==="Mileage"&&v.val==="") return "Enter the next "+typeName(form,ts[i])+" mileage, or choose None."; }
+        return ""; }
       var by=(form.querySelector("[name=nextBy]:checked")||{}).value||"";
       if(by==="Date"&&!form.nextDate.value) return "Enter the next service date, or choose None.";
       if(by==="Mileage"&&form.nextMiles.value==="") return "Enter the next service mileage, or choose None."; return ""; },
-    onSave:function(form){ var type=form.type.value; if(type==="Other"&&form.other.value.trim()) type=form.other.value.trim();
-      var by=(form.querySelector("[name=nextBy]:checked")||{}).value||"";
-      var rec={truck:form.truck.value,date:form.date.value,type:type,odo:parseFloat(form.odo.value),provider:form.provider.value.trim(),work:form.work.value.trim(),
-        nextBy:by,nextDate:by==="Date"?form.nextDate.value:"",nextMiles:by==="Mileage"&&form.nextMiles.value!==""?Number(form.nextMiles.value):null,photos:atts};
-      return api("saveMaint",S.pin,m?m.id:"",rec).then(function(){ return m?"Service record updated":"Service logged"; }); },
+    onSave:function(form){
+      var base={truck:form.truck.value,date:form.date.value,odo:parseFloat(form.odo.value),provider:form.provider.value.trim(),work:form.work.value.trim(),photos:atts};
+      function withType(type,by,nd,nm){ var r={}; for(var k in base) r[k]=base[k];
+        r.type=type; r.nextBy=by; r.nextDate=by==="Date"?nd:""; r.nextMiles=by==="Mileage"&&nm!==""?Number(nm):null; r.photos=atts.slice(); return r; }
+      if(!multi){ var type=form.type.value; if(type==="Other"&&form.other.value.trim()) type=form.other.value.trim();
+        var by=(form.querySelector("[name=nextBy]:checked")||{}).value||"";
+        return api("saveMaint",S.pin,m.id,withType(type,by,form.nextDate.value,form.nextMiles.value)).then(function(){ return "Service record updated"; }); }
+      readNext();
+      var todo=checked(form).filter(function(t){return done.indexOf(t)<0;});
+      return todo.reduce(function(p,t){ return p.then(function(){ var v=nx[t]||{by:"",val:""};
+          return api("saveMaint",S.pin,"",withType(typeName(form,t),v.by,v.val,v.val)).then(function(){ done.push(t); },
+            function(ex){ var ok=done.map(function(x){return typeName(form,x);}), left=checked(form).filter(function(x){return done.indexOf(x)<0;}).map(function(x){return typeName(form,x);});
+              throw new Error((ok.length?"Saved "+ok.join(", ")+". ":"")+"Couldn't save "+left.join(", ")+": "+msg(ex).replace(/([^.!?])$/,"$1.")+(ok.length?" Tap Log service to try the rest again.":"")); }); }); }, Promise.resolve())
+        .then(function(){ var names=done.map(function(x){return typeName(form,x);});
+          return names.length===1?names[0]+" logged":"Logged "+names.length+" services: "+names.join(", "); }); },
     onDelete:m&&isAdmin()?function(){ return api("deleteMaint",S.pin,m.id); }:null });
 }
 
